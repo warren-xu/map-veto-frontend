@@ -27,12 +27,12 @@ export class AppComponent {
 
     teamAName = TEAM_A_NAME;
     teamBName = TEAM_B_NAME;
-    slotsPerTeam = DEFAULT_SLOTS_PER_TEAM;
+    seriesType: "bo1" | "bo3" = "bo1";
 
-    matchId = '';
+    matchId = "";
     match?: MatchState;
 
-    myMatchId = '';           // text box for users joining specific match and team
+    myMatchId = "";           // text box for users joining specific match and team
     myTeamIndex: number | null = null;
     role: 'captain' | 'spectator' | null = null;
     captainToken: string | null = null;
@@ -57,9 +57,9 @@ export class AppComponent {
     createMatch() {
         this.errorMessage = '';
         this.loading = true;
-        console.log('Creating match...', this.teamAName, this.teamBName, this.slotsPerTeam);
+        console.log('Creating match...', this.teamAName, this.teamBName, this.seriesType);
 
-        this.matchService.createMatch(this.teamAName, this.teamBName, this.slotsPerTeam)
+        this.matchService.createMatch(this.teamAName, this.teamBName, this.seriesType)
             .subscribe({
                 next: resp => {
                     console.log('Create match result:', resp);
@@ -167,6 +167,15 @@ export class AppComponent {
         if (!this.match) return false;
         return Number(this.match.phase) === COMPLETED_PHASE_ID && this.match.deciderMapId === map.id;
     };
+
+    isBo1(): boolean {
+        return !!this.match && this.match.seriesType === "bo1";
+    };
+
+    isBo3(): boolean {
+        return !!this.match && this.match.seriesType === "bo3";
+    };
+
 
     onMapClick(map: MapInfo) {
         if (!this.matchId || !this.match) {

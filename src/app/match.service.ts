@@ -11,8 +11,8 @@ export class MatchService {
 
   constructor(private http: HttpClient) {}
 
-  createMatch(teamA: string, teamB: string, slots: number): Observable<{ matchId: string }> {
-    const url = `${this.baseUrl}/match/create?teamA=${encodeURIComponent(teamA)}&teamB=${encodeURIComponent(teamB)}&slots=${slots}`;
+  createMatch(teamA: string, teamB: string, series: "bo1" | "bo3"): Observable<{ matchId: string }> {
+    const url = `${this.baseUrl}/match/create?teamA=${encodeURIComponent(teamA)}&teamB=${encodeURIComponent(teamB)}&series=${series}`;
     return this.http.get<{ matchId: string }>(url);
   }
 

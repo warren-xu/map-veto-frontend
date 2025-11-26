@@ -20,6 +20,7 @@ export interface MatchState {
   currentTurnTeam: number;  
   currentStepIndex: number;
   deciderMapId: number;
+  seriesType: 'bo1' | 'bo3';
   teams: Team[];
   availableMaps: MapInfo[];
 }
