@@ -7,6 +7,7 @@ export const routes: Routes = [
   { path: '', redirectTo: 'create', pathMatch: 'full' },
   { path: 'create', component: CreateMatchPageComponent },
   { path: 'join', component: JoinMatchPageComponent },
+  { path: 'match/:id/team/:teamIndex', component: MatchPageComponent },
   { path: 'match/:id', component: MatchPageComponent },
   { path: '**', redirectTo: 'create' }
 ];
