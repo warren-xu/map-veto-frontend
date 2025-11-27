@@ -1,0 +1,33 @@
+<section class="card">
+  <h2>Join Match</h2>
+
+  <div class="form-row">
+    <label for="matchId">Match ID</label>
+    <input id="matchId" [(ngModel)]="myMatchId" placeholder="e.g. W7eaJ74k" />
+  </div>
+
+  <div class="form-row">
+    <label for="role">Your role</label>
+    <select id="role" [(ngModel)]="myTeamIndex">
+      <option [ngValue]="0">Team 0 Captain</option>
+      <option [ngValue]="1">Team 1 Captain</option>
+      <option [ngValue]="null">Spectator</option>
+    </select>
+  </div>
+
+  <button class="primary-btn" (click)="joinMatch()" [disabled]="loading">
+    <span *ngIf="!loading">Join</span>
+    <span *ngIf="loading">Joining...</span>
+  </button>
+
+  <p class="hint">
+    Captains can make picks and bans. Spectators can view the veto live.
+  </p>
+
+  <div *ngIf="infoMessage" class="info">
+    {{ infoMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="error">
+    {{ errorMessage }}
+  </div>
+</section>

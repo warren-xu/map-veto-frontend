@@ -1,123 +1,26 @@
-<div class="container">
-    <h1>{{ title }}</h1>
+<!-- src/app/app.component.html -->
+<div class="app-shell">
+  <header class="app-header">
+    <div class="app-title">
+      <h1>Valorant Map Veto</h1>
+      <span class="app-subtitle">BO1 / BO3 Map Pick &amp; Ban</span>
+    </div>
 
-    <section class="create-section">
-        <h2>Create Match</h2>
-        <div class="form-row">
-            <label>Team A:</label>
-            <input [(ngModel)]="teamAName" />
-        </div>
-        <div class="form-row">
-            <label>Team B:</label>
-            <input [(ngModel)]="teamBName" />
-        </div>
-        <div class="form-row">
-            <label>Series type:</label>
-            <select [(ngModel)]="seriesType">
-                <option value="bo1">Best of 1 (BO1)</option>
-                <option value="bo3">Best of 3 (BO3)</option>
-            </select>
-        </div>
-        <button (click)="createMatch()">Create Match</button>
+    <nav class="app-nav">
+      <a routerLink="/create" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        Create Match
+      </a>
+      <a routerLink="/join" routerLinkActive="active">
+        Join Match
+      </a>
+    </nav>
+  </header>
 
-        <div class="match-id" *ngIf="matchId">
-            Match ID: <code>{{ matchId }}</code>
-            <button (click)="loadState()">Refresh State</button>
-        </div>
-    </section>
+  <main class="app-main">
+    <router-outlet></router-outlet>
+  </main>
 
-    <section class="create-section">
-        <h2>Join Existing Match</h2>
-        <div class="form-row">
-            <label>Match ID:</label>
-            <input [(ngModel)]="myMatchId" />
-        </div>
-        <div class="form-row">
-            <label>Your role:</label>
-            <select [(ngModel)]="myTeamIndex">
-                <option [ngValue]="0">Team 0 Captain</option>
-                <option [ngValue]="1">Team 1 Captain</option>
-                <option [ngValue]="null">Spectator</option>
-            </select>
-        </div>
-        <button (click)="joinMatch()">Join</button>
-        <p *ngIf="role">
-            Joined as: <strong>{{ role | uppercase }}</strong>
-            <span *ngIf="role === 'captain' && myTeamIndex !== null">
-                (Team {{ myTeamIndex }})
-            </span>
-        </p>
-    </section>
-
-    <section *ngIf="match">
-        <h2>Status</h2>
-        <p>
-            Phase: <strong>{{ getPhaseLabel() }}</strong> |
-            Turn: <strong>{{ getCurrentTeamName() }}</strong> (Team {{ match.currentTurnTeam }}) |
-            Step: {{ match.currentStepIndex }}
-        </p>
-        <p *ngIf="match.phase === 2 && match.deciderMapId">
-            Decider map: <strong>{{ getMapNameById(match.deciderMapId) }}</strong>
-        </p>
-
-        <div class="controls" *ngIf="match">
-            <p>
-                Current team:
-                <strong>{{ getCurrentTeamName() }}</strong>
-                (Team {{ match.currentTurnTeam }})<br>
-                Current action:
-                <strong>
-                    {{ match.phase == 0 ? 'BAN' : match.phase == 1 ? 'PICK' : 'DONE' }}
-                </strong>
-            </p>
-        </div>
-
-
-        <h2>Maps</h2>
-        <div class="maps-grid">
-            <button *ngFor="let map of match.availableMaps" class="map-btn" [class.banned]="isMapBanned(map)"
-                [class.picked]="isMapPicked(map)" [class.decider]="isDecider(map)" (click)="onMapClick(map)">
-                <div class="map-name">{{ map.name }}</div>
-                <div class="map-status">
-                    <span *ngIf="isDecider(map)">Decider</span>
-                    <span *ngIf="!isDecider(map) && isMapBanned(map)">BANNED</span>
-                    <span *ngIf="!isDecider(map) && !isMapBanned(map) && isMapPicked(map)">PICKED</span>
-                    <span *ngIf="!isDecider(map) && !isMapBanned(map) && !isMapPicked(map)">AVAILABLE</span>
-                </div>
-            </button>
-        </div>
-
-        <div class="teams">
-            <div class="team" *ngFor="let team of match.teams; let ti = index">
-                <h3>{{ team.name }} (Team {{ ti }})</h3>
-                <p>
-                    Series:
-                    <strong *ngIf="isBo1()">BO1</strong>
-                    <strong *ngIf="isBo3()">BO3</strong>
-                </p>
-
-                <p><strong>Bans:</strong>
-                    <ng-container *ngIf="team.bannedMapIds.length; else noBans">
-                        <span *ngFor="let bid of team.bannedMapIds; let last = last">
-                            {{ getMapNameById(bid) }}<span *ngIf="!last">, </span>
-                        </span>
-                    </ng-container>
-                    <ng-template #noBans>None</ng-template>
-                </p>
-                <p *ngIf="!isBo1()"><strong>Picks:</strong></p>
-                <ul *ngIf="!isBo1()">
-                    <li *ngFor="let slot of team.slots">
-                        {{ slot.playerName || 'Slot' }}:
-                        <span *ngIf="slot.mapId !== 0; else notPicked">
-                            {{ getMapNameById(slot.mapId) }}
-                        </span>
-                        <ng-template #notPicked>Not picked</ng-template>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <div *ngIf="loading" class="loading">Loading...</div>
-    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+  <footer class="app-footer">
+    <span>Simple custom server · Match state lives on the backend, safe to refresh.</span>
+  </footer>
 </div>

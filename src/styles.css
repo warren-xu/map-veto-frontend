@@ -1,1 +1,9 @@
-/* You can add global styles to this file, and also import other style files */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #0b1020;   /* same as your app background */
+  color: #f5f5f5;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

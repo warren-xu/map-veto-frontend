@@ -1,0 +1,34 @@
+<section class="card">
+  <h2>Create Match</h2>
+
+  <div class="form-row">
+    <label for="teamA">Team A</label>
+    <input id="teamA" [(ngModel)]="teamAName" />
+  </div>
+
+  <div class="form-row">
+    <label for="teamB">Team B</label>
+    <input id="teamB" [(ngModel)]="teamBName" />
+  </div>
+
+  <div class="form-row">
+    <label for="series">Series type</label>
+    <select id="series" [(ngModel)]="seriesType">
+      <option value="bo1">Best of 1 (BO1)</option>
+      <option value="bo3">Best of 3 (BO3)</option>
+    </select>
+  </div>
+
+  <button class="primary-btn" (click)="createMatch()" [disabled]="loading">
+    <span *ngIf="!loading">Create Match</span>
+    <span *ngIf="loading">Creating...</span>
+  </button>
+
+  <p class="hint">
+    After creating, you’ll be redirected to the match page and can share the URL.
+  </p>
+
+  <div *ngIf="errorMessage" class="error">
+    {{ errorMessage }}
+  </div>
+</section>

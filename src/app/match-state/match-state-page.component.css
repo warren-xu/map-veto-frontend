@@ -1,0 +1,193 @@
+.match-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(55, 65, 81, 0.8);
+}
+
+.match-header {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1.5fr);
+  gap: 10px;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgba(55, 65, 81, 0.8);
+}
+
+.match-meta,
+.match-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.label {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+}
+
+.faded {
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+code {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(17, 24, 39, 0.9);
+  font-size: 0.8rem;
+}
+
+.role-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.pill-captain {
+  background: rgba(22, 163, 74, 0.9);
+  color: #ecfdf5;
+}
+
+.pill-spectator {
+  background: rgba(30, 64, 175, 0.9);
+  color: #e0f2fe;
+}
+
+/* Maps */
+
+.maps-grid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+}
+
+.map-btn {
+  padding: 8px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: rgba(17, 24, 39, 0.9);
+  color: #e5e7eb;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease,
+    box-shadow 0.12s ease;
+}
+
+.map-btn:hover {
+  background: rgba(30, 64, 175, 0.85);
+  border-color: #60a5fa;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+}
+
+.map-btn.banned {
+  background: rgba(127, 29, 29, 0.9);
+  border-color: #f87171;
+}
+
+.map-btn.picked {
+  background: rgba(22, 101, 52, 0.9);
+  border-color: #4ade80;
+}
+
+.map-btn.decider {
+  background: rgba(8, 47, 73, 0.95);
+  border-color: #22d3ee;
+}
+
+.map-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.map-status {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #d1d5db;
+}
+
+/* Teams */
+
+.teams-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.team-card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.team-card p {
+  margin: 4px 0;
+  font-size: 0.85rem;
+}
+
+.summary-card p {
+  margin: 6px 0;
+  font-size: 0.9rem;
+}
+
+/* Utility */
+
+.hint {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.loading {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #93c5fd;
+}
+
+.error {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: rgba(127, 29, 29, 0.9);
+  color: #fecaca;
+  font-size: 0.85rem;
+}
+
+/* Responsive tweaks */
+
+@media (max-width: 720px) {
+  .match-header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .role-badge {
+    align-items: flex-start;
+  }
+}
