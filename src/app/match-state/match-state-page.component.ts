@@ -17,7 +17,7 @@ const COMPLETED_PHASE_ID = 2;
     templateUrl: './match-state-page.component.html',
     styleUrls: ['./match-state-page.component.css']
 })
-export class MatchPageComponent implements OnInit, OnDestroy {
+export class MatchStatePageComponent implements OnInit, OnDestroy {
 
     matchId = '';
     match?: MatchState;
@@ -194,6 +194,23 @@ export class MatchPageComponent implements OnInit, OnDestroy {
         if (!this.match || !this.match.deciderMapId) return '';
         return this.getMapNameById(this.match.deciderMapId);
     }
+
+    getDeciderMapGif(): string | null {
+    const name = this.getDeciderMapName();
+    if (!name) return null;
+
+    const n = name.toLowerCase();
+    if (n.includes('abyss')) return 'assets/maps/abyss.gif';
+    if (n.includes('ascent')) return 'public/ascent.webp';
+    if (n.includes('corrode')) return 'assets/maps/corrode.gif';
+    if (n.includes('haven')) return 'assets/maps/haven.gif';
+    if (n.includes('pearl')) return 'assets/maps/pearl.gif';
+    if (n.includes('split')) return 'assets/maps/split.gif';
+    if (n.includes('sunset')) return 'assets/maps/sunset.gif';
+
+    // fallback
+    return 'assets/maps/default.gif';
+  }
 
     onMapClick(map: MapInfo) {
         if (!this.matchId || !this.match) {

@@ -112,7 +112,7 @@
     <h2>Series Summary</h2>
 
     <p>
-      <strong>Series:</strong>
+      <strong>Series: </strong>
       <span *ngIf="isBo1()">Best of 1 (BO1)</span>
       <span *ngIf="isBo3()">Best of 3 (BO3)</span>
     </p>
@@ -139,6 +139,22 @@
       </span>
       <ng-template #noDecider>Not determined</ng-template>
     </p>
+
+    <ng-container *ngIf="getDeciderMapGif() as imgUrl; else noImg">
+    <div class="decider-img-wrapper">
+      <img
+        [src]="imgUrl"
+        [alt]="'Decider map schematic for ' + getDeciderMapName()"
+        class="decider-gif"
+      />
+    </div>
+    
+  </ng-container>
+   
+
+  <ng-template #noImg>
+    <p class="hint">No schematic available for this map.</p>
+  </ng-template>
   </section>
 
   <!-- Errors / loading -->
