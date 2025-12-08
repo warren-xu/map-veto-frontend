@@ -1,6 +1,7 @@
 export interface MapInfo {
   id: number;
   name: string;
+  previewUrl?: string;
 }
 
 export interface TeamSlot {

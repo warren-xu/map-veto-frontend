@@ -1,32 +1,40 @@
 <section *ngIf="match as m; else loadingOrError" class="match-layout">
   <!-- Top bar: match info -->
-  <div class="match-header">
-    <div class="match-meta">
-      <div>
-        <span class="label">Match ID:</span>
-        <code>{{ matchId }}</code>
+  <header class="match-header card">
+    <div class="match-header-left">
+      <div class="match-meta">
+        <div class="meta-row">
+          <span class="label">Match ID</span>
+          <code class="mono">{{ matchId }}</code>
+        </div>
+        <div class="meta-row">
+          <span class="label">Series</span>
+          <strong class="pill pill-soft">
+            <ng-container *ngIf="isBo1()">Best of 1</ng-container>
+            <ng-container *ngIf="isBo3()">Best of 3</ng-container>
+          </strong>
+        </div>
       </div>
-      <div>
-        <span class="label">Series:</span>
-        <strong *ngIf="isBo1()">BO1</strong>
-        <strong *ngIf="isBo3()">BO3</strong>
-      </div>
-    </div>
 
-    <div class="match-status">
-      <div>
-        <span class="label">Phase:</span>
-        <strong>{{ getPhaseLabel() }}</strong>
-      </div>
-      <div>
-        <span class="label">Turn:</span>
-        <strong>{{ getCurrentTeamName() }}</strong>
-        <span class="faded"> (Team {{ m.currentTurnTeam }})</span>
+      <div class="match-status">
+        <div class="status-row">
+          <span class="label">Phase</span>
+          <span class="pill pill-phase">
+            {{ getPhaseLabel() }}
+          </span>
+        </div>
+        <div class="status-row">
+          <span class="label">Turn</span>
+          <span class="pill pill-turn">
+            {{ getCurrentTeamName() }}
+            <span class="faded"> (Team {{ m.currentTurnTeam }})</span>
+          </span>
+        </div>
       </div>
     </div>
 
     <div class="role-badge" *ngIf="role">
-      <span class="label">You are:</span>
+      <span class="label">You are</span>
       <span
         class="pill"
         [class.pill-captain]="role === 'captain'"
@@ -38,40 +46,73 @@
         </ng-container>
       </span>
     </div>
-  </div>
+  </header>
 
   <!-- Maps grid -->
   <section class="card">
-    <h2>Maps</h2>
-    <p class="hint">
-      Click a map to perform your team’s current action (BAN during Ban Phase, PICK during Pick Phase).
-    </p>
+    <div class="section-header">
+      <h2>Maps</h2>
+      <p class="hint">
+        Click a map to perform your team’s current action:
+        <strong>BAN</strong> during the Ban Phase, <strong>PICK</strong> during the Pick Phase.
+      </p>
+    </div>
 
     <div class="maps-grid">
       <button
         *ngFor="let map of m.availableMaps"
         class="map-btn"
+        type="button"
         [class.banned]="isMapBanned(map)"
         [class.picked]="isMapPicked(map)"
         [class.decider]="isDecider(map)"
         (click)="onMapClick(map)"
       >
-        <div class="map-name">{{ map.name }}</div>
-        <div class="map-status">
-          <span *ngIf="isDecider(map)">DECIDER</span>
-          <span *ngIf="!isDecider(map) && isMapBanned(map)">BANNED</span>
-          <span
-            *ngIf="!isDecider(map) && !isMapBanned(map) && isMapPicked(map)"
-            >PICKED</span
-          >
-          <span
-            *ngIf="
-              !isDecider(map) &&
-              !isMapBanned(map) &&
-              !isMapPicked(map)
-            "
-            >AVAILABLE</span
-          >
+        <div class="map-media-wrapper">
+          <video
+            #videoRef
+            class="map-video"
+            *ngIf="map.previewUrl"
+            [src]="map.previewUrl"
+            playsinline
+            loop
+            muted
+            preload="metadata"
+            controlslist="nodownload noplaybackrate noremoteplayback"
+            (mouseenter)="onMapHoverEnter(videoRef)"
+            (mouseleave)="onMapHoverLeave(videoRef)"
+          ></video>
+
+          <div class="map-overlay">
+            <div class="map-name">
+              {{ map.name }}
+            </div>
+            <div class="map-status-pill"
+              [class.map-status-decider]="isDecider(map)"
+              [class.map-status-banned]="!isDecider(map) && isMapBanned(map)"
+              [class.map-status-picked]="!isDecider(map) && !isMapBanned(map) && isMapPicked(map)"
+              [class.map-status-available]="
+                !isDecider(map) &&
+                !isMapBanned(map) &&
+                !isMapPicked(map)
+              "
+            >
+              <ng-container *ngIf="isDecider(map)">DECIDER</ng-container>
+              <ng-container *ngIf="!isDecider(map) && isMapBanned(map)">BANNED</ng-container>
+              <ng-container *ngIf="!isDecider(map) && !isMapBanned(map) && isMapPicked(map)">
+                PICKED
+              </ng-container>
+              <ng-container
+                *ngIf="
+                  !isDecider(map) &&
+                  !isMapBanned(map) &&
+                  !isMapPicked(map)
+                "
+              >
+                AVAILABLE
+              </ng-container>
+            </div>
+          </div>
         </div>
       </button>
     </div>
@@ -79,82 +120,97 @@
 
   <!-- Teams info -->
   <section class="teams-layout">
-    <div class="card team-card" *ngFor="let team of m.teams; let ti = index">
-      <h3>{{ team.name }} (Team {{ ti }})</h3>
+    <article class="card team-card" *ngFor="let team of m.teams; let ti = index">
+      <header class="team-card-header">
+        <h3>{{ team.name }}</h3>
+        <span class="team-tag">Team {{ ti }}</span>
+      </header>
 
-      <p>
-        <strong>Bans: </strong>
-        <ng-container *ngIf="team.bannedMapIds.length; else noBans">
-          <span *ngFor="let bid of team.bannedMapIds; let last = last">
-            {{ getMapNameById(bid) }}<span *ngIf="!last">, </span>
-          </span>
-        </ng-container>
-        <ng-template #noBans>None</ng-template>
-      </p>
+      <div class="team-row">
+        <span class="team-label">Bans</span>
+        <span class="team-value">
+          <ng-container *ngIf="team.bannedMapIds.length; else noBans">
+            <span *ngFor="let bid of team.bannedMapIds; let last = last">
+              {{ getMapNameById(bid) }}<span *ngIf="!last">, </span>
+            </span>
+          </ng-container>
+          <ng-template #noBans>None</ng-template>
+        </span>
+      </div>
 
-      <p *ngIf="!isBo1()">
-        <strong>Picks: </strong>
-        <ng-container *ngIf="team.pickedMapIds.length; else noPicks">
-          <span *ngFor="let pid of team.pickedMapIds; let last = last">
-            {{ getMapNameById(pid) }}<span *ngIf="!last">, </span>
-          </span>
-        </ng-container>
-        <ng-template #noPicks>None</ng-template>
-      </p>
-    </div>
+      <div class="team-row" *ngIf="!isBo1()">
+        <span class="team-label">Picks</span>
+        <span class="team-value">
+          <ng-container *ngIf="team.pickedMapIds.length; else noPicks">
+            <span *ngFor="let pid of team.pickedMapIds; let last = last">
+              {{ getMapNameById(pid) }}<span *ngIf="!last">, </span>
+            </span>
+          </ng-container>
+          <ng-template #noPicks>None</ng-template>
+        </span>
+      </div>
+    </article>
   </section>
 
   <!-- Summary once completed -->
-  <section
-    *ngIf="m.phase === COMPLETED_PHASE_ID"
-    class="card summary-card"
-  >
+  <section *ngIf="m.phase === COMPLETED_PHASE_ID" class="card summary-card">
     <h2>Series Summary</h2>
 
-    <p>
-      <strong>Series: </strong>
-      <span *ngIf="isBo1()">Best of 1 (BO1)</span>
-      <span *ngIf="isBo3()">Best of 3 (BO3)</span>
-    </p>
-
-    <p *ngIf="isBo3()">
-      <strong>Picks:</strong><br />
-      {{ m.teams[0].name }} picked:
-      <span *ngIf="getTeamPickedMapNames(0).length; else noPicks0">
-        {{ getTeamPickedMapNames(0).join(', ') }}
+    <div class="summary-row">
+      <span class="summary-label">Series</span>
+      <span class="summary-value">
+        <span *ngIf="isBo1()">Best of 1 (BO1)</span>
+        <span *ngIf="isBo3()">Best of 3 (BO3)</span>
       </span>
-      <ng-template #noPicks0>None</ng-template>
-      <br />
-      {{ m.teams[1].name }} picked:
-      <span *ngIf="getTeamPickedMapNames(1).length; else noPicks1">
-        {{ getTeamPickedMapNames(1).join(', ') }}
-      </span>
-      <ng-template #noPicks1>None</ng-template>
-    </p>
-
-    <p>
-      <strong>Decider map:</strong>
-      <span *ngIf="m.deciderMapId; else noDecider">
-        {{ getDeciderMapName() }}
-      </span>
-      <ng-template #noDecider>Not determined</ng-template>
-    </p>
-
-    <ng-container *ngIf="getDeciderMapGif() as imgUrl; else noImg">
-    <div class="decider-img-wrapper">
-      <img
-        [src]="imgUrl"
-        [alt]="'Decider map schematic for ' + getDeciderMapName()"
-        class="decider-gif"
-      />
     </div>
-    
-  </ng-container>
-   
 
-  <ng-template #noImg>
-    <p class="hint">No schematic available for this map.</p>
-  </ng-template>
+    <div class="summary-row" *ngIf="isBo3()">
+      <span class="summary-label">Picks</span>
+      <div class="summary-value">
+        <div class="summary-subrow">
+          <strong>{{ m.teams[0].name }}</strong>
+          <span>
+            <ng-container *ngIf="getTeamPickedMapNames(0).length; else noPicks0">
+              {{ getTeamPickedMapNames(0).join(', ') }}
+            </ng-container>
+            <ng-template #noPicks0>None</ng-template>
+          </span>
+        </div>
+        <div class="summary-subrow">
+          <strong>{{ m.teams[1].name }}</strong>
+          <span>
+            <ng-container *ngIf="getTeamPickedMapNames(1).length; else noPicks1">
+              {{ getTeamPickedMapNames(1).join(', ') }}
+            </ng-container>
+            <ng-template #noPicks1>None</ng-template>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-row">
+      <span class="summary-label">Decider map</span>
+      <span class="summary-value">
+        <ng-container *ngIf="m.deciderMapId; else noDecider">
+          {{ getDeciderMapName() }}
+        </ng-container>
+        <ng-template #noDecider>Not determined</ng-template>
+      </span>
+    </div>
+
+    <!-- <ng-container *ngIf="getDeciderMapGif() as imgUrl; else noImg">
+      <div class="decider-img-wrapper">
+        <img
+          [src]="imgUrl"
+          [alt]="'Decider map schematic for ' + getDeciderMapName()"
+          class="decider-gif"
+        />
+      </div>
+    </ng-container> -->
+
+    <ng-template #noImg>
+      <p class="hint">No schematic available for this map.</p>
+    </ng-template>
   </section>
 
   <!-- Errors / loading -->

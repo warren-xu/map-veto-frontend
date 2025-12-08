@@ -160,14 +160,14 @@ export class JoinMatchPageComponent {
                             `match_${resp.matchId}_spectator`,
                             JSON.stringify({ role: 'spectator' })
                         );
-                        this.router.navigate(['/match', resp.matchId]);
+                        this.router.navigate(['/match', resp.matchId], {replaceUrl: true});
                     }
                 } else {
                     // SSR fallback
                     if (resp.role === 'captain' && typeof resp.team === 'number') {
-                        this.router.navigate(['/match', resp.matchId, 'team', resp.team]);
+                        this.router.navigate(['/match', resp.matchId, 'team', resp.team], { replaceUrl: true });
                     } else {
-                        this.router.navigate(['/match', resp.matchId]);
+                        this.router.navigate(['/match', resp.matchId], { replaceUrl: true });
                     }
                 }
             },
