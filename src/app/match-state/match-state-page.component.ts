@@ -13,11 +13,11 @@ import { Subscription } from 'rxjs';
 import { MatchService } from '../match.service';
 import { MatchState, MapInfo } from '../models';
 import { MatchSocketService } from '../match-socket.service';
-import { HttpParams } from '@angular/common/http';
 
 const BAN_PHASE_ID = 0;
 const PICK_PHASE_ID = 1;
-const COMPLETED_PHASE_ID = 2;
+const SIDE_PHASE_ID = 2;
+const COMPLETED_PHASE_ID = 3;
 
 type Role = 'captain' | 'spectator' | null;
 
@@ -37,6 +37,7 @@ interface CaptainAuthStored {
 export class MatchStatePageComponent implements OnInit, OnDestroy {
   readonly BAN_PHASE_ID = BAN_PHASE_ID;
   readonly PICK_PHASE_ID = PICK_PHASE_ID;
+  readonly SIDE_PHASE_ID = SIDE_PHASE_ID;
   readonly COMPLETED_PHASE_ID = COMPLETED_PHASE_ID;
 
   // Basic state 
@@ -52,17 +53,6 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
 
   // Internals
   private wsSub?: Subscription;
-
-  // GIF mapping for decider previews
-  private readonly DECIDER_GIF_BY_KEYWORD: Record<string, string> = {
-    abyss: 'assets/maps/abyss.gif',
-    ascent: 'public/ascent.webp',
-    corrode: 'assets/maps/corrode.gif',
-    haven: 'assets/maps/haven.gif',
-    pearl: 'assets/maps/pearl.gif',
-    split: 'assets/maps/split.gif',
-    sunset: 'assets/maps/sunset.gif',
-  };
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -104,9 +94,56 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
     video.currentTime = 0;
   }
 
+  onSideClick(sideId: number): void {
+    if (!this.matchId || !this.match) return;
+
+    if (!this.isCurrentUserCaptain()) {
+      this.errorMessage = 'Only team captains can choose sides';
+      return;
+    }
+
+    if (!this.isCurrentTeamTurn()) {
+      this.errorMessage = `It is currently ${this.getCurrentTeamName()}'s turn`;
+      return;
+    }
+
+    // Call API with action='side' and mapId=sideId (0=Attack, 1=Defend)
+    this.loading = true;
+    this.matchService
+      .applyAction(
+        this.matchId,
+        this.myTeamIndex!,
+        'side',
+        sideId,
+        this.captainToken!
+      )
+      .subscribe({
+        next: (state) => {
+          this.match = state;
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Action error:', err);
+          this.errorMessage = 'Action rejected by server';
+          this.loading = false;
+        },
+      });
+  }
+
   onMapClick(map: MapInfo): void {
     if (!this.matchId || !this.match) {
       this.errorMessage = 'Create or join a match first';
+      return;
+    }
+
+    // If we are in Side Selection, clicking a map should do nothing
+    if (this.getCurrentActionType() === 'side') {
+      console.warn('Cannot pick a map during Side Selection phase.');
+      return;
+    }
+
+    if (!this.isCurrentUserCaptain()) {
+      this.errorMessage = 'Only team captains can make picks/bans';
       return;
     }
 
@@ -160,6 +197,8 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
         return 'Ban Phase';
       case PICK_PHASE_ID:
         return 'Pick Phase';
+      case SIDE_PHASE_ID:     
+        return 'Side Selection';
       case COMPLETED_PHASE_ID:
         return 'Completed';
       default:
@@ -221,18 +260,47 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
     return this.getMapNameById(this.match.deciderMapId);
   }
 
-  /* getDeciderMapGif(): string | null {
-    const name = this.getDeciderMapName();
-    if (!name) return null;
+  getDeciderMapUrl(): string {
+    if (!this.match || !this.match.deciderMapId) return '';
+    // Find the map object to get its preview image
+    const map = this.match.availableMaps.find(m => m.id === this.match!.deciderMapId);
+    // Fallback to a default if not found
+    return map && map.mapImgUrl ? map.mapImgUrl : "" ;
+  }
 
-    const lower = name.toLowerCase();
-    for (const key of Object.keys(this.DECIDER_GIF_BY_KEYWORD)) {
-      if (lower.includes(key)) {
-        return this.DECIDER_GIF_BY_KEYWORD[key];
-      }
+  goHome(): void {
+    this.router.navigate(['/']);
+  }
+
+  getAttackingTeamName(): string {
+    if (!this.match) return 'TBD';
+
+    const sidePickerIndex = 1; // Team B
+    const otherTeamIndex = 0;  // Team A
+
+    if (this.match.deciderSide === 0) {
+      // Picker chose Attack
+      return this.match.teams[sidePickerIndex].name;
+    } else {
+      // Picker chose Defense, so the other team Attacks
+      return this.match.teams[otherTeamIndex].name;
     }
-    return 'assets/maps/default.gif';
-  } */
+  }
+
+  getDefendingTeamName(): string {
+    if (!this.match) return 'TBD';
+
+    const sidePickerIndex = 1;
+    const otherTeamIndex = 0;
+
+    if (this.match.deciderSide === 1) {
+      // Picker chose Defense
+      return this.match.teams[sidePickerIndex].name;
+    } else {
+      // Picker chose Attack, so the other team Defends
+      return this.match.teams[otherTeamIndex].name;
+    }
+  }
 
   // Private helpers
 
@@ -305,7 +373,7 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
     this.role = 'spectator';
     this.myTeamIndex = null;
     this.captainToken = null;
-    this.router.navigate(['/match', matchId], {replaceUrl: true})
+    this.router.navigate(['/match', matchId], { replaceUrl: true })
   }
 
   private initMatchWithWebSocket(id: string): void {
@@ -331,10 +399,80 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
     return this.match.currentTurnTeam === this.myTeamIndex;
   }
 
-  private getCurrentActionType(): 'ban' | 'pick' | null {
+  private getCurrentActionType(): 'ban' | 'pick' | 'side' | null {
     if (!this.match) return null;
     if (this.match.phase === BAN_PHASE_ID) return 'ban';
     if (this.match.phase === PICK_PHASE_ID) return 'pick';
+    if (this.match.phase === SIDE_PHASE_ID) return 'side';
     return null;
+  }
+
+  // Gets data for the 3 columns in BO3
+  getBo3MapCardsData() {
+    if (!this.match) return [];
+    const cards = [];
+
+    // Helper to extract image safely
+    const getImg = (m: MapInfo) => m.mapImgUrl || m.previewUrl || '';
+
+    // Team A Pick
+    if (this.match.teams[0].pickedMapIds.length > 0) {
+      const map = this.match.availableMaps.find(m => m.id === this.match!.teams[0].pickedMapIds[0]);
+      if (map) {
+        cards.push({
+          mapName: map.name,
+          imageUrl: getImg(map),
+          selectedBy: this.match.teams[0].name,
+          accentClass: 'accent-cyan' 
+        });
+      }
+    }
+
+    // Team B Pick
+    if (this.match.teams[1].pickedMapIds.length > 0) {
+      const map = this.match.availableMaps.find(m => m.id === this.match!.teams[1].pickedMapIds[0]);
+      if (map) {
+        cards.push({
+          mapName: map.name,
+          imageUrl: getImg(map),
+          selectedBy: this.match.teams[1].name,
+          accentClass: 'accent-red' 
+        });
+      }
+    }
+
+    // Decider
+    if (this.match.deciderMapId) {
+      const map = this.match.availableMaps.find(m => m.id === this.match!.deciderMapId);
+      if (map) {
+        cards.push({
+          mapName: map.name,
+          imageUrl: getImg(map),
+          selectedBy: 'Decider',
+          accentClass: 'accent-white' 
+        });
+      }
+    }
+    return cards;
+  }
+
+  get isMyTurn(): boolean {
+    if (!this.match || this.role !== 'captain') {
+      return false;
+    }
+    return this.myTeamIndex === this.match.currentTurnTeam;
+  }
+
+  get isBanPhase(): boolean {
+    return this.match?.phase === BAN_PHASE_ID;
+  }
+
+  // --- NEW GETTER ---
+  get isSidePhase(): boolean {
+    return this.match?.phase === SIDE_PHASE_ID;
+  }
+
+  get actionColorClass(): string {
+    return this.isBanPhase ? 'val-red-text' : 'val-cyan-text';
   }
 }
