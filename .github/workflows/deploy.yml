@@ -31,7 +31,7 @@ jobs:
       - run: npm run build -- --configuration production --base-href "/REPO/"
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/Valpicks-frontend
+          path: dist/map-veto-frontend/browser
 
   deploy:
     needs: build
