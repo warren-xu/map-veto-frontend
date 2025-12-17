@@ -17,11 +17,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+    
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+      - name: Inject API base URL
+        run: |
+             sed -i "s|__API_BASE_URL__|${{ secrets.API_BASE_URL }}|g" src/environments/environment.prod.ts
+
       - run: npm ci
       - run: npm run build -- --configuration production --base-href "/REPO/"
       - uses: actions/upload-pages-artifact@v3
