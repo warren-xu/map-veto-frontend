@@ -2,6 +2,10 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.0.
 
+## Production
+
+This project is currently deployed on GitHub Pages following the main branch, check it out here: https://warren-xu.github.io/ValPicks-frontend/
+
 ## Development server
 
 To start a local development server, run:
