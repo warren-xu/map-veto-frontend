@@ -11,17 +11,73 @@
   --font-body: 'Oswald', sans-serif;
 
   display: block;
-  background-color: var(--val-bg-dark);
-  color: var(--val-white);
-  min-height: 100vh;
-  font-family: var(--font-body);
+  min-height: 100%;
+}
+
+.page-wrapper {
+  display: flex;
+  width: 100%;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  position: relative;
+  isolation: isolate;
+}
+
+/* Global readability improvement */
+.page-wrapper::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(1200px 700px at 30% 10%, rgba(73,214,255,0.18), transparent 55%),
+    radial-gradient(900px 600px at 80% 20%, rgba(0,255,188,0.08), transparent 55%),
+    radial-gradient(1200px 900px at 50% 90%, rgba(0,0,0,0.55), rgba(0,0,0,0.75));
+  mix-blend-mode: multiply;
+}
+
+/* Game Interface */
+.game-interface {
+  flex: 1;
   padding: 2rem;
+  display: flex;
+  justify-content: center; /* Center the portrait UI horizontally */
+  align-items: flex-start; /* Align to top */
 }
 
 /* Layout Structure */
+.match-layout.portrait-mode {
+  width: 100%;
+  max-width: 900px;
+  margin-top: 2rem;
+  background: transparent; /* Remove global bg, let page bg show */
+}
+
+/* Ensure cards inside match-layout are semi-transparent to show bg */
+.match-layout .card {
+  background: transparent;
+}
+
+/* Map Buttons match aspect ratio of the clip */
+.map-btn {
+  aspect-ratio: 16/9; 
+}
+
+.game-interface {
+  flex: 1;
+  width: 100%;
+  height: auto;
+  padding: 1rem;
+  box-sizing: border-box;
+  display: block;
+}
+
 .match-layout {
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -35,48 +91,265 @@
   border-bottom: 2px solid rgba(255,255,255,0.1);
   padding-bottom: 2rem;
   margin-bottom: 1rem;
-
-  .match-meta, .match-status {
-    display: flex;
-    gap: 2rem;
-  }
-
-  .label {
-    display: block;
-    color: var(--val-cyan);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.2rem;
-  }
-
-  code, strong, .pill-phase {
-    font-family: var(--font-header);
-    font-size: 2rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    line-height: 1;
-  }
+  flex-wrap: wrap;
+  gap: 2rem;
 }
+
+.match-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stage-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.meta-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:16px 20px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.04);
+}
+
+.meta-row, .status-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.meta-label{
+  font-size:18px;
+  opacity:.7;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.meta-value{
+  font-size:20px;
+  padding:2px 6px;
+  border-radius:8px;
+  background:rgba(0,0,0,0.25);
+}
+
+.label {
+  display: block;
+  color: var(--val-cyan);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.stage-header{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  padding:16px 16px 14px;
+}
+
+.stage-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+}
+
+.stage-kicker{
+  font-size:12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  opacity:.75;
+  margin-bottom:6px;
+}
+
+.stage-left{ display:flex; flex-direction:column; }
+
+.stage-callout{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* key */
+  gap: 16px;
+  padding-top:10px;
+  text-align: left;
+  flex-wrap: wrap; /* allows hint line to wrap naturally */
+}
+
+.stage-callout .header-title{
+  margin:0;
+}
+
+.stage-callout .hint{
+  margin:6px 0 0;
+  opacity:.85;
+}
+
+.callout-text{
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.stage-right{
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+}
+
+/* Pills */
+.pill {
+  display: inline-block;
+  padding: 4px 12px;
+  font-family: var(--font-header);
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--val-white);
+  white-space: nowrap;
+}
+
+.pill-soft { border-color: var(--val-grey); color: var(--val-grey); }
+
+.pill-turn{
+  border-radius: 6px;      
+  padding: 8px 16px;
+  font-family: var(--font-header);
+  font-size: 1.2rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  border: 1px solid transparent;
+  background: rgba(12,18,26,0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+/* Friendly turn */
+.pill-turn.friendly{
+  background: linear-gradient(
+    135deg,
+    rgba(0,255,188,0.95),
+    rgba(0,200,160,0.85)
+  );
+  color: rgba(10,16,24,0.95);
+  border-color: rgba(0,255,188,0.9);
+  box-shadow:
+    0 0 0 2px rgba(0,255,188,0.25),
+    0 12px 35px rgba(0,255,188,0.35);
+}
+
+/* Enemy turn */
+.pill-turn.enemy{
+  background: linear-gradient(
+    135deg,
+    rgba(255,70,85,0.95),
+    rgba(200,40,55,0.85)
+  );
+  color: #fff;
+  border-color: rgba(255,70,85,0.9);
+  box-shadow:
+    0 0 0 2px rgba(255,70,85,0.25),
+    0 12px 35px rgba(255,70,85,0.35);
+}
+
+.pill-spectator{
+  padding:6px 10px;
+  border-radius:999px;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:.06em;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.12);
+}
+
+/* Team banners at top of page */
+.team-banners{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+  margin: 0; /* keep tight under header */
+}
+
+.team-banner{
+  padding: 10px 16px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.team-banner h1{
+  margin: 0;
+  font-family: var(--font-header);
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 0.9;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.left-banner {
+  background: linear-gradient(90deg, rgba(0, 255, 188, 0.15) 0%, transparent 100%);
+  border-left: 6px solid var(--val-cyan);
+}
+.left-banner h1 { color: var(--val-cyan); }
+
+.right-banner {
+  text-align: right;
+  background: linear-gradient(-90deg, rgba(255, 70, 85, 0.15) 0%, transparent 100%);
+  border-right: 6px solid var(--val-red);
+  display: flex;
+  justify-content: flex-end;
+}
+.right-banner h1 { color: var(--val-red); }
+
+@media (max-width: 1000px) {
+  .team-banner h1 { font-size: 3rem; }
+}
+
+/* Main stage */
+.section-header { text-align: center; margin-bottom: 1rem; }
+
+.state-body{
+  display: grid;
+  grid-template-columns: 350px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.header-title {
+  font-family: var(--font-header);
+  font-size: 3.5rem;
+  line-height: 1;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+}
+
+.my-turn { color: var(--val-cyan); text-shadow: 0 0 20px rgba(0, 255, 188, 0.3); }
+.enemy-text { color: var(--val-white); text-shadow: 0 0 20px rgba(255, 70, 85, 0.3); }
+
+/* Helper Text Classes */
+.text-cyan { color: var(--val-cyan); }
+.text-red { color: var(--val-red); }
+.val-cyan-text { color: var(--val-cyan) !important; }
+.val-red-text { color: var(--val-red) !important; }
 
 /* Map Grid */
-.section-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  
-  h2 {
-    font-family: var(--font-header);
-    font-size: 3rem;
-    text-transform: uppercase;
-    margin: 0;
-    letter-spacing: 2px;
-  }
-}
-
 .maps-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 1400px) {
+  .maps-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* Map Card Button */
@@ -88,10 +361,10 @@
   margin: 0;
   cursor: pointer;
   position: relative;
-  aspect-ratio: 9/16;
+  aspect-ratio: 16/9;
   overflow: hidden;
   transition: all 0.2s ease;
-  
+
   clip-path: polygon(
     0 0, 
     100% 0, 
@@ -99,32 +372,27 @@
     calc(100% - 20px) 100%, 
     0 100%
   );
+}
 
-  &:hover {
-    transform: translateY(-5px);
-    border-color: var(--val-white);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    
-    .map-name {
-      background: var(--val-white);
-      color: var(--val-bg-dark);
-    }
-  }
+.map-btn:hover {
+  transform: translateY(-5px);
+}
+.map-btn:hover .map-overlay .map-name { background-color: var(--val-cyan);}
+.map-btn:hover .map-overlay { border-color: var(--val-cyan);}
 
-  /* Vid/Img bg */
-  .map-media-wrapper {
-    width: 100%;
-    height: 100%;
-    position: relative;
-  }
+.map-btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(30%);
+}
+.map-btn:disabled:hover { transform: none; box-shadow: none; border-color: rgba(255,255,255,0.1); }
 
-  .map-video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.6; 
-    transition: opacity 0.3s;
-  }
+/* Vid/Img bg */
+.map-media-wrapper, .map-video, .map-static-img, .column-overlay {
+  position: relative;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Overlays for picking and banning */
@@ -134,14 +402,15 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  pointer-events: none; 
+  pointer-events: none;
+  border: 2px solid black;
 }
 
 /* Map Name */
 .map-name {
   background: rgba(0,0,0,0.8);
   color: var(--val-white);
-  padding: 1rem;
+  padding: 0.5rem;
   text-align: center;
   font-family: var(--font-header);
   font-size: 1.5rem;
@@ -152,113 +421,38 @@
   transition: background 0.3s, color 0.3s;
 }
 
+.map-btn:not(:disabled):hover .map-name { background: var(--val-white); color: var(--val-bg-dark); }
+
+/* Map States (Banned/Picked) */
+.map-btn.banned { pointer-events: none; filter: grayscale(100%); border-color: var(--val-red); }
+.map-btn.banned .map-video { opacity: 0.2; }
+
+.map-btn.picked { border: 2px solid var(--val-cyan); box-shadow: 0 0 20px rgba(0, 255, 188, 0.2); }
+.map-btn.picked .map-name { background: var(--val-cyan); color: var(--val-bg-dark); }
+
 /* Status overlay of maps */
 .map-status-pill {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   width: 100%;
   text-align: center;
-  opacity: 0; 
-  pointer-events: none;
   font-family: var(--font-header);
-  font-size: 2rem;
+  font-size: 1.5rem;
   text-shadow: 0 2px 10px rgba(0,0,0,1);
+  display: none;
 }
 
-/* Map hovering */
-.map-btn:hover .map-video {
-  opacity: 1;
-}
-
-.map-btn:focus, .map-btn:active {
-  outline: 2px solid var(--val-cyan);
-}
-
-/* Banned state */
-.map-btn.banned {
-  pointer-events: none;
-  filter: grayscale(100%);
-  border: 1px solid var(--val-red);
-  
-  .map-video {
-    opacity: 0.2;
-  }
-
-  .map-status-pill {
-    opacity: 1;
-    color: var(--val-red);
-    font-size: 1.2rem;
-    
-    /* Creating the big "X" */
-    &::before {
-      content: '✕';
-      display: block;
-      font-size: 4rem;
-      line-height: 1;
-      margin-bottom: 0.5rem;
-    }
-  }
-}
-
-/* Picked state */
-.map-btn.picked {
-  border: 2px solid var(--val-cyan);
-  box-shadow: 0 0 20px rgba(0, 255, 188, 0.2);
-
-  .map-video {
-    opacity: 1;
-  }
-
-  .map-name {
-    background: var(--val-cyan);
-    color: var(--val-bg-dark);
-  }
-  
-  .map-status-pill {
-    opacity: 0; /* Hide text, just show the bright card */
-  }
-}
-
-/* Footer */
-.teams-layout {
-  display: flex;
-  gap: 2rem;
-  margin-top: auto;
-  
-  .team-card {
-    background: transparent;
-    border-left: 4px solid var(--val-grey);
-    padding-left: 1rem;
-    flex: 1;
-    
-    &:first-child { border-color: var(--val-cyan); } /* Friendly */
-    &:last-child { border-color: var(--val-red); }   /* Enemy */
-    
-    h3 {
-      font-family: var(--font-header);
-      font-size: 2.5rem;
-      margin: 0;
-      text-transform: uppercase;
-      line-height: 1;
-    }
-    
-    .team-label {
-      color: var(--val-grey);
-      text-transform: uppercase;
-      font-size: 0.8rem;
-      margin-right: 0.5rem;
-    }
-  }
-}
+.map-status-pill.banned { color: var(--val-red); display: block; }
+.map-status-pill.banned::before { content: '✕'; display: block; font-size: 2.5rem; line-height: 0.8; }
+.map-status-pill.decider { display: block; }
 
 /* Side Selection Screen */
 
 /* The container that replaces the maps grid */
 .side-selection-container {
   display: flex;
-  justify-content: center;
+  justify-content: left;
   align-items: center;
   gap: 2rem;
   padding: 3rem 0;
@@ -291,13 +485,14 @@
   transition: border-color 0.3s, filter 0.3s, opacity 0.3s;
   position: relative;
   overflow: visible;
-
+  
   clip-path: polygon(
     20px 0, 100% 0,
     100% calc(100% - 20px), calc(100% - 20px) 100%,
     0 100%, 0 20px
   );
 }
+.side-btn:disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(100%); }
 
 /* Icon Styling */
 .side-icon {
@@ -316,30 +511,33 @@
   display: block;
 }
 
-/* Text Styling */
 .side-label {
-  font-family: 'Teko', sans-serif;
+  font-family: var(--font-header);
   font-size: 3.5rem;
-  text-transform: uppercase;
   letter-spacing: 4px;
-  z-index: 2;
-  line-height: 1;
-  transition: letter-spacing 0.3s ease;
 }
 
-/* Side selection disabled for when it's not team turn */
-.side-btn:disabled {
-  opacity: 0.2;
-  cursor: not-allowed;
-  filter: grayscale(100%);
-  border-color: transparent;
+/* Defense Styles */
+.side-btn.defense { color: var(--val-red); }
+/* Defense Hover Trigger */
+.side-btn.defense:hover:not(:disabled) {
+  animation: shieldDischarge 1.5s ease infinite;
+  transform: translateY(-3px);
 }
 
-/* Attack Theme of Blurry Crosshair into focus */
-
-.side-btn.attack {
-  color: #00ffbc; /* Valorant Cyan */
+.side-btn.defense:hover:not(:disabled) .side-icon {
+  transform: scale(1.15);
+  animation: electricJitter 0.8s linear infinite;
 }
+
+/* Attack Styles */
+.side-btn.attack { color: var(--val-cyan); }
+.side-btn.attack:hover:not(:disabled) { animation: ghostlyAura 4s infinite; }
+.side-btn.attack:hover:not(:disabled) .side-icon { animation: spiritFloat 4s infinite; }
+
+/* Animations */
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 
 @keyframes ghostlyAura {
     0% {
@@ -373,29 +571,6 @@
         filter: blur(1px);
     }
 }
-
-/* Attack Hover Trigger */
-.side-btn.attack:hover:not(:disabled) {
-  animation: ghostlyAura 4s ease-in-out infinite;
-}
-
-.side-btn.attack:hover:not(:disabled) .side-icon {
-  animation: spiritFloat 4s ease-in-out infinite;
-}
-
-.side-btn.attack:hover:not(:disabled) .side-label {
-    letter-spacing: 8px; /* Spreading text out */
-    text-shadow: 0 0 10px #00ffbc;
-}
-
-
-/* Defense, protective theme */
-
-.side-btn.defense {
-  color: #ff4655;
-}
-
-/* Animation: Shield taking blows */
 @keyframes shieldDischarge {
     0% {
         box-shadow: 0 0 10px rgba(255, 70, 85, 0.3);
@@ -432,32 +607,36 @@
     100% { transform: scale(1.15); filter: brightness(1); }
 }
 
-/* Defense Hover Trigger */
-.side-btn.defense:hover:not(:disabled) {
-  animation: shieldDischarge 1.5s ease infinite;
-  transform: translateY(-3px);
-}
+/* Footer */
+.teams-layout { display: flex; gap: 2rem; margin-top: auto; }
 
-.side-btn.defense:hover:not(:disabled) .side-icon {
-  transform: scale(1.15);
-  animation: electricJitter 0.8s linear infinite;
+.team-card {
+  border-left: 4px solid var(--val-grey);
+  padding-left: 1rem;
+  flex: 1;
+  background: transparent;
 }
+.team-card:first-child { border-color: var(--val-cyan); }
+.team-card:last-child { border-color: var(--val-red); }
 
-.side-btn.defense:hover:not(:disabled) .side-label {
-    text-shadow: 0 0 5px #ff4655, 0 0 20px #ff4655;
+.team-card-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 1rem;
 }
+.team-card h3 { font-family: var(--font-header); font-size: 2.5rem; margin: 0; text-transform: uppercase; }
 
-/* Preview Phase */
+.team-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 1rem; }
+.team-label { color: var(--val-grey); text-transform: uppercase; }
+.team-value { font-weight: bold; color: var(--val-white); }
+
+/* Summary Screen */
 .preview-layout {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: #0f1923;
-  color: white;
+  inset: 0;
   z-index: 100;
+  /* Ensure the container underneath is dark so the mask fades into darkness */
+  background: var(--val-bg-dark);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -475,51 +654,21 @@
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
   padding: 12px 24px;
-  font-family: 'Teko', sans-serif;
+  font-family: var(--font-header);
   font-size: 1.5rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 2px;
   cursor: pointer;
   transition: all 0.2s ease;
-  
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-  backdrop-filter: blur(4px);
 }
 
 .nav-btn:hover {
-  background: #ff4655; /* Valorant Red */
-  border-color: #ff4655;
-  transform: translateY(-2px);
-}
-
-/* Background Map Image */
-.preview-bg {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  filter: brightness(0.5); /* Darken map so text pops */
-  z-index: 0;
-}
-
-/* Gradient Overlay to make text readable */
-.preview-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg, 
-    rgba(15, 25, 35, 0.9) 0%, 
-    rgba(15, 25, 35, 0.4) 30%, 
-    rgba(15, 25, 35, 0.4) 70%, 
-    rgba(15, 25, 35, 0.9) 100%
-  );
+  background: var(--val-red);
+  border-color: var(--val-red);
 }
 
 /* Content Container */
 .preview-content {
   position: relative;
-  z-index: 2;
+  z-index: 3; /* Raised z-index to sit above the new cloud layers */
   display: flex;
   width: 100%;
   max-width: 1600px;
@@ -592,7 +741,42 @@
   text-shadow: 0 0 20px rgba(255, 70, 85, 0.4);
 }
 
-/* Center Map Name */
+/* Background Map Image Container */
+.preview-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+  
+  /* Cloud Effect */
+  /* This creates a radial mask that makes the edges of the image transparent, 
+     fading it into the dark background color set on .preview-layout */
+  -webkit-mask-image: radial-gradient(ellipse at center, black 40%, rgba(0,0,0,0.8) 60%, transparent 100%);
+          mask-image: radial-gradient(ellipse at center, black 40%, rgba(0,0,0,0.8) 60%, transparent 100%);
+          
+  /* Subtle scale up to ensure the misty edges push off-screen */
+  transform: scale(1.05);
+  /* Slightly brighten the center of the map so it pops through the mist */
+  filter: brightness(1.2) contrast(1.1);
+}
+
+/* The dark overlay to ensure text is readable */
+.preview-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* Sits between image and content */
+  
+  /* CHANGED: Switched to radial gradient to match the cloudy mask shape */
+  background: radial-gradient(
+    ellipse at center, 
+    rgba(15, 25, 35, 0.3) 0%,   /* Transparent center */
+    rgba(15, 25, 35, 0.7) 60%,  /* Darkening midfield */
+    rgba(15, 25, 35, 1) 100%    /* Solid dark edges */
+  );
+}
+
 .center-info {
   display: flex;
   flex-direction: column;
@@ -600,26 +784,25 @@
 }
 
 .map-title-large {
-  font-family: 'Teko', sans-serif;
+  font-family: var(--font-header);
   font-size: 8rem;
-  text-transform: uppercase;
-  color: rgb(255,255,255); /* Subtle watermark effect */
   position: absolute;
-  top: -70%;
+  top: -90%;
   left: 50%;
   transform: translate(-50%, -50%);
+  text-transform: uppercase;
   white-space: nowrap;
   pointer-events: none;
-  z-index: -1;
+  z-index: -1; /* Behind the VS badge */
 }
 
 .vs-badge {
-  font-family: 'Teko', sans-serif;
+  font-family: var(--font-header);
   font-size: 4rem;
-  background: #ff4655;
+  background: var(--val-red);
   color: white;
   padding: 0.5rem 1.5rem;
-  transform: skew(-20deg); /* Valorant skew */
+  transform: skew(-20deg);
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
@@ -694,7 +877,6 @@
   padding: 1rem 2rem;
   background: rgba(0,0,0,0.6);
   border: 1px solid rgba(255,255,255,0.1);
-  backdrop-filter: blur(4px);
 }
 
 .bo3-label {
@@ -720,3 +902,81 @@
 
 .accent-white .bo3-value { color: white; }
 .accent-white { border-bottom: 4px solid white; }
+
+
+/* Log Sidebar */
+.log-sidebar{
+  border: 1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(12,18,26,0.62), rgba(12,18,26,0.42));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 18px;
+  overflow: hidden; /* keep header + entries clean */
+}
+
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 14px 12px;
+  margin: 0;
+  border-bottom: 1px solid rgba(73,214,255,0.22);
+  background:
+    linear-gradient(90deg, rgba(73,214,255,0.18), rgba(255,70,85,0.10), rgba(12,18,26,0));
+}
+
+.log-header h3 {
+  font-family: 'Teko', sans-serif;
+  font-size: 1.7rem;
+  letter-spacing: .12em;
+  color: white;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.live-indicator {
+  background: #ff4655;
+  color: white;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 2px;
+  animation: pulse 2s infinite;
+}
+
+.log-content {
+  flex: 1;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 10px;
+  font-family: 'Mono', monospace;
+  font-size: 0.9rem;
+}
+
+.log-entry {
+  padding: 0.8rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 4px solid rgba(73,214,255,0.35);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  line-height: 1.25;
+  color: #ece8e1;
+  animation: slideIn 0.3s ease-out;
+}
+
+.log-entry:first-child{
+  border-left-color: var(--val-cyan);
+  background: linear-gradient(90deg, rgba(73,214,255,0.14), rgba(255,255,255,0.05));
+}
+
+.log-empty{
+  color: rgba(236,232,225,0.70);
+  padding: 10px 6px;
+}
+
+
