@@ -55,6 +55,9 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
   role: Role = null;
   captainToken: string | null = null;
 
+  // Logs
+  matchLogs: string[] = [];
+
   // Internals
   private wsSub?: Subscription;
 
@@ -64,7 +67,7 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
     private readonly matchService: MatchService,
     private readonly matchSocket: MatchSocketService,
     @Inject(PLATFORM_ID) private readonly platformId: Object
-  ) {}
+  ) { }
 
   // Lifecycle 
 
@@ -151,11 +154,6 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.isCurrentUserCaptain()) {
-      this.errorMessage = 'Only team captains can make picks/bans';
-      return;
-    }
-
     if (!this.isCurrentTeamTurn()) {
       this.errorMessage = `It is currently ${this.getCurrentTeamName()}'s turn`;
       return;
@@ -192,6 +190,33 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
   }
 
   // Helpers
+
+  trackByMapId(index: number, map: MapInfo): number {
+    return map.id;
+  }
+
+  getMyTeamName(): string {
+    if (!this.match || this.myTeamIndex === null) return '';
+    return this.match.teams[this.myTeamIndex]?.name || '';
+  }
+
+  getEnemyTeamName(): string {
+    if (!this.match || this.myTeamIndex === null) return '';
+    const enemyIdx = this.myTeamIndex === TEAM_A ? TEAM_B : TEAM_A;
+    return this.match.teams[enemyIdx]?.name || '';
+  }
+
+  getTurnDisplay(): string {
+    if (!this.match) return '';
+
+    // If I am a spectator, show the actual team name (e.g. "Team A")
+    if (this.role === 'spectator' || this.myTeamIndex === null) {
+      return this.getCurrentTeamName();
+    }
+
+    // If I am a captain, show relative text
+    return this.isMyTurn ? 'YOUR TEAM' : 'ENEMY TEAM';
+  }
 
   getPhaseLabel(): string {
     if (!this.match) return '';
@@ -250,15 +275,6 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
     return !!this.match && this.match.seriesType === 'bo3';
   }
 
-  getTeamPickedMapNames(teamIndex: number): string[] {
-    if (!this.match) return [];
-    const team = this.match.teams[teamIndex];
-    if (!team) return [];
-    return team.pickedMapIds
-      .map((id) => this.getMapNameById(id))
-      .filter(Boolean);
-  }
-
   getDeciderMapName(): string {
     if (!this.match || !this.match.deciderMapId) return '';
     return this.getMapNameById(this.match.deciderMapId);
@@ -277,28 +293,28 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
   }
 
   getAttackingTeamName(): string {
-  if (!this.match) return 'TBD';
-  const picker = this.match.deciderSidePickerTeam;
-  if (picker !== TEAM_A && picker !== TEAM_B) return 'TBD';
+    if (!this.match) return 'TBD';
+    const picker = this.match.deciderSidePickerTeam;
+    if (picker !== TEAM_A && picker !== TEAM_B) return 'TBD';
 
-  const other = picker === TEAM_A ? TEAM_B : TEAM_A;
+    const other = picker === TEAM_A ? TEAM_B : TEAM_A;
 
-  return this.match.deciderSide === ATTACK_SIDE_ID
-    ? this.match.teams[picker].name
-    : this.match.teams[other].name;
-}
+    return this.match.deciderSide === ATTACK_SIDE_ID
+      ? this.match.teams[picker].name
+      : this.match.teams[other].name;
+  }
 
-getDefendingTeamName(): string {
-  if (!this.match) return 'TBD';
-  const picker = this.match.deciderSidePickerTeam;
-  if (picker !== TEAM_A && picker !== TEAM_B) return 'TBD';
+  getDefendingTeamName(): string {
+    if (!this.match) return 'TBD';
+    const picker = this.match.deciderSidePickerTeam;
+    if (picker !== TEAM_A && picker !== TEAM_B) return 'TBD';
 
-  const other = picker === TEAM_A ? TEAM_B : TEAM_A;
+    const other = picker === TEAM_A ? TEAM_B : TEAM_A;
 
-  return this.match.deciderSide === DEFEND_SIDE_ID
-    ? this.match.teams[picker].name
-    : this.match.teams[other].name;
-}
+    return this.match.deciderSide === DEFEND_SIDE_ID
+      ? this.match.teams[picker].name
+      : this.match.teams[other].name;
+  }
 
 
   // Private helpers
@@ -322,9 +338,50 @@ getDefendingTeamName(): string {
   private subscribeToMatchUpdates(): void {
     this.wsSub = this.matchSocket.matchState$.subscribe((state) => {
       if (state) {
+        this.updateLogs(state); // Compare old match vs new state to gen logs
         this.match = state;
       }
     });
+  }
+
+  // Helper to generate logs by comparing state
+  private updateLogs(newState: MatchState) {
+    if (!this.match) {
+      this.matchLogs.push(`[System] Connected to Match ID: ${this.matchId}`);
+      return;
+    }
+
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+
+
+    // 2. Detect Bans (Compare array lengths)
+    newState.teams.forEach((newTeam, index) => {
+      const oldTeam = this.match?.teams[index];
+      if (!oldTeam) return;
+
+      if (newTeam.bannedMapIds.length > oldTeam.bannedMapIds.length) {
+        // Find the new ID
+        const newBanId = newTeam.bannedMapIds[newTeam.bannedMapIds.length - 1];
+        // Need to look up map name from NEW state available maps
+        const mapName = newState.availableMaps.find(m => m.id === newBanId)?.name || 'Unknown Map';
+        this.matchLogs.unshift(`[${timestamp}] 🚫 ${newTeam.name} BANNED ${mapName}`);
+      }
+
+      // 3. Detect Picks
+      if (newTeam.pickedMapIds.length > oldTeam.pickedMapIds.length) {
+        const newPickId = newTeam.pickedMapIds[newTeam.pickedMapIds.length - 1];
+        const mapName = newState.availableMaps.find(m => m.id === newPickId)?.name || 'Unknown Map';
+        this.matchLogs.unshift(`[${timestamp}] ✅ ${newTeam.name} PICKED ${mapName}`);
+      }
+    });
+
+    // 4. Detect Side Selection
+    if (newState.deciderSide !== undefined && this.match.deciderSide === undefined) {
+      const pickingTeam = newState.teams[newState.deciderSidePickerTeam]?.name;
+      const side = newState.deciderSide === 0 ? 'ATTACK' : 'DEFENSE';
+      this.matchLogs.unshift(`[${timestamp}] ⚔️ ${pickingTeam} chose to start on ${side}`);
+    }
   }
 
   private initializeIdentityFromRoute(
@@ -358,8 +415,7 @@ getDefendingTeamName(): string {
     try {
       const parsed: CaptainAuthStored = JSON.parse(storedRaw);
       this.role = parsed.role ?? 'captain';
-      this.myTeamIndex =
-        typeof parsed.team === 'number' ? parsed.team : teamIndex;
+      this.myTeamIndex = typeof parsed.team === 'number' ? parsed.team : teamIndex;
       this.captainToken = parsed.token ?? null;
     } catch {
       // If parsing fails, assume captain but without token
@@ -379,6 +435,7 @@ getDefendingTeamName(): string {
     this.matchService.getState(id).subscribe({
       next: (state) => {
         this.match = state;
+        this.matchLogs.push(`[System] Loaded match data.`);
         this.matchSocket.connect(id);
       },
       error: (err) => {
@@ -410,7 +467,7 @@ getDefendingTeamName(): string {
   getBo3MapCardsData() {
     if (!this.match) return [];
     const cards = [];
-
+    
     // Helper to extract image safely
     const getImg = (m: MapInfo) => m.mapImgUrl || m.previewUrl || '';
 
@@ -462,11 +519,10 @@ getDefendingTeamName(): string {
     return this.myTeamIndex === this.match.currentTurnTeam;
   }
 
-  get isBanPhase(): boolean {
+    get isBanPhase(): boolean {
     return this.match?.phase === BAN_PHASE_ID;
   }
-
-  // --- NEW GETTER ---
+  
   get isSidePhase(): boolean {
     return this.match?.phase === SIDE_PHASE_ID;
   }
