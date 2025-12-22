@@ -15,11 +15,35 @@
         <span class="live-indicator">LIVE</span>
       </div>
       <div class="log-content">
-        <div *ngFor="let log of matchLogs" class="log-entry">
-          {{ log }}
-        </div>
-        <div *ngIf="matchLogs.length === 0" class="log-empty">
-          Waiting for updates...
+        <div *ngFor="let row of timelineRows" class="step-card" [class.current]="row.isCurrent"
+          [class.done]="row.isDone">
+          <!-- top -->
+          <div class="step-strip">
+            <div class="strip-left">
+              <span class="step-num">{{ row.stepNum }}</span>
+              <span class="step-team">{{ match?.teams?.[row.teamIndex]?.name }}</span>
+            </div>
+
+            <div class="step-right" [class.cyan]="row.teamIndex === 0" [class.red]="row.teamIndex === 1">
+              {{ row.rightLabel }}
+            </div>
+          </div>
+
+          <!-- map -->
+          <div class="step-body" [style.background-image]="row.mapImgUrl ? ('url(' + row.mapImgUrl + ')') : 'none'">
+            <div class="step-overlay"></div>
+
+            <div class="step-body-content">
+              <ng-container *ngIf="row.isDone; else pending">
+                <div class="step-map">{{ row.mapName }}</div>
+                <div class="step-sub" *ngIf="row.sideLabel">{{ row.sideLabel }}</div>
+              </ng-container>
+
+              <ng-template #pending>
+                <div class="step-dots">•••</div>
+              </ng-template>
+            </div>
+          </div>
         </div>
       </div>
     </aside>
@@ -29,7 +53,7 @@
 
       <ng-container *ngIf="match?.phase === COMPLETED_PHASE_ID; else matchInProgress">
 
-        <section *ngIf="isBo1()" class="preview-layout">
+        <section *ngIf="isBo1()" class="preview-layout">  
           <div class="preview-bg" *ngIf="getDeciderMapUrl()"
             [style.background-image]="'url(' + getDeciderMapUrl() + ')'">
           </div>
@@ -54,7 +78,7 @@
 
         <section *ngIf="isBo3()" class="preview-layout">
           <div class="preview-controls">
-            <button class="nav-btn" (click)="goHome()">← RETURN TO HOME</button>
+            <button class="nav-btn" (click)="goHome()">← RETURN TO HOME</button>      
           </div>
 
           <div class="bo3-grid">
@@ -80,57 +104,57 @@
 
           <section class="card main-stage">
             <header class="stage-header">
-              <div class="stage-top">
-                <div class="stage-left">
-                  <div class="stage-meta">
-                    <div class="meta-item">
-                      <span class="meta-label">Match ID</span>
-                      <code class="meta-value">{{ matchId }}</code>
+                <div class="stage-top">
+                  <div class="stage-left">
+                    <div class="stage-meta">
+                      <div class="meta-item">                    
+                        <span class="meta-label">Match ID</span>
+                        <code class="meta-value">{{ matchId }}</code>
+                      </div>
                     </div>
                   </div>
+
                 </div>
 
-              </div>
-
-              <!-- Tells User the Phase -->
-              <div class="stage-callout">
-                <div class="callout-text">
-                  <ng-container *ngIf="isSidePhase; else mapPhaseHeader">
-                    <ng-container *ngIf="isMyTurn; else enemySideTurn">
-                      <h2 class="header-title my-turn">CHOOSE STARTING SIDE</h2>
+                <!-- Tells User the Phase -->
+                <div class="stage-callout">
+                  <div class="callout-text">
+                    <ng-container *ngIf="isSidePhase; else mapPhaseHeader">
+                      <ng-container *ngIf="isMyTurn; else enemySideTurn">
+                        <h2 class="header-title my-turn">CHOOSE STARTING SIDE</h2>
+                      </ng-container>
+                      <ng-template #enemySideTurn>
+                        <h2 class="header-title enemy-text">
+                          {{ role === 'spectator' ? 'SPECTATING:' : 'WAITING FOR OTHER TEAM...' }}
+                        </h2>
+                      </ng-template>
                     </ng-container>
-                    <ng-template #enemySideTurn>
-                      <h2 class="header-title enemy-text">
-                        {{ role === 'spectator' ? 'SPECTATING:' : 'WAITING FOR OTHER TEAM...' }}
-                      </h2>
-                    </ng-template>
-                  </ng-container>
 
-                  <ng-template #mapPhaseHeader>
-                    <ng-container *ngIf="isMyTurn; else enemyMapTurn">
-                      <h2 class="header-title">
-                        YOUR TEAM
-                        <span [ngClass]="actionColorClass">
-                          {{ isBanPhase ? 'BANS' : 'CHOOSES' }}
-                        </span>
-                        A MAP
-                      </h2>
-                    </ng-container>
-                    <ng-template #enemyMapTurn>
-                      <h2 class="header-title enemy-text">
-                        {{ role === 'spectator' ? 'SPECTATING:' : 'WAITING FOR OTHER TEAM...' }}
-                      </h2>
+                    <ng-template #mapPhaseHeader>
+                      <ng-container *ngIf="isMyTurn; else enemyMapTurn">
+                        <h2 class="header-title">
+                          YOUR TEAM
+                          <span [ngClass]="actionColorClass">
+                            {{ isBanPhase ? 'BANS' : 'CHOOSES' }}
+                          </span>
+                          A MAP
+                        </h2>
+                      </ng-container>
+                      <ng-template #enemyMapTurn>
+                        <h2 class="header-title enemy-text">
+                          {{ role === 'spectator' ? 'SPECTATING:' : 'WAITING FOR OTHER TEAM...' }}
+                        </h2>
+                      </ng-template>
                     </ng-template>
-                  </ng-template>
-                </div>
+                  </div>
 
-                <div class="stage-right">
-                  <span class="pill pill-turn" [class.friendly]="role === 'captain' && isMyTurn"
-                    [class.enemy]="role === 'captain' && !isMyTurn">
-                    {{ getTurnDisplay() }}
-                  </span>
+                  <div class="stage-right">
+                    <span class="pill pill-turn" [class.friendly]="role === 'captain' && isMyTurn"
+                      [class.enemy]="role === 'captain' && !isMyTurn">
+                      {{ getTurnDisplay() }}
+                    </span>
+                  </div>
                 </div>
-              </div>
             </header>
 
 

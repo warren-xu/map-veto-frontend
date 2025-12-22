@@ -31,6 +31,23 @@ interface CaptainAuthStored {
   token?: string;
 }
 
+type StepKind = 'BAN' | 'PICK' | 'SIDE';
+
+interface TimelineRow {
+  index: number;            // 0-based
+  stepNum: string;          // "01", "02", ...
+  teamIndex: number;        // 0/1
+  kind: StepKind;
+  rightLabel: string;       // "BAN MAP" / "CHOOSE MAP" / "CHOOSE SIDE"
+  isCurrent: boolean;
+  isDone: boolean;
+
+  mapName?: string;
+  mapImgUrl?: string;
+
+  sideLabel?: string;       // "ATTACK" / "DEFENSE" for SIDE
+}
+
 @Component({
   standalone: true,
   selector: 'app-match-page',
@@ -189,6 +206,68 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
       });
   }
 
+  // Match Log Helpers
+  private actionToKind(action: number): StepKind {
+    // backend: 0 Ban, 1 Pick, 2 Side
+    if (action === 0) return 'BAN';
+    if (action === 1) return 'PICK';
+    return 'SIDE';
+  }
+
+  private rightLabelFor(kind: StepKind): string {
+    if (kind === 'BAN') return 'BAN MAP';
+    if (kind === 'PICK') return 'CHOOSE MAP';
+    return 'CHOOSE SIDE';
+  }
+
+  private sideToLabel(v: number | undefined): string | undefined {
+    if (v === 0) return 'ATTACK';
+    if (v === 1) return 'DEFENSE';
+    return undefined;
+  }
+
+  private pad2(n: number): string {
+    return String(n).padStart(2, '0');
+  }
+
+  private getMapById(mapId: number) {
+    // if you have a full map list, use that; otherwise availableMaps is fine for names/imgs
+    return this.match?.availableMaps?.find(m => m.id === mapId);
+  }
+  timelineRows: TimelineRow[] = [];
+
+private rebuildTimelineRows(): void {
+  const m = this.match;
+  if (!m?.steps?.length) {
+    this.timelineRows = [];
+    return;
+  }
+
+  this.timelineRows = m.steps.map((s, i) => {
+    const kind = this.actionToKind(s.action);
+    const mapId = m.stepMapIds?.[i] ?? 0;
+    const sideVal = m.stepSideVals?.[i];
+
+    const map = mapId ? this.getMapById(mapId) : undefined;
+
+    return {
+      index: i,
+      stepNum: this.pad2(i + 1),
+      teamIndex: s.teamIndex,
+      kind,
+      rightLabel: this.rightLabelFor(kind),
+      isCurrent: m.currentStepIndex === i,
+      isDone: !!mapId,
+
+      mapName: map?.name,
+      mapImgUrl: map?.mapImgUrl,
+
+      sideLabel: kind === 'SIDE' ? this.sideToLabel(sideVal) : undefined,
+    };
+  });
+}
+
+
   // Helpers
 
   trackByMapId(index: number, map: MapInfo): number {
@@ -338,50 +417,11 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
   private subscribeToMatchUpdates(): void {
     this.wsSub = this.matchSocket.matchState$.subscribe((state) => {
       if (state) {
-        this.updateLogs(state); // Compare old match vs new state to gen logs
+        
         this.match = state;
+        this.rebuildTimelineRows();
       }
     });
-  }
-
-  // Helper to generate logs by comparing state
-  private updateLogs(newState: MatchState) {
-    if (!this.match) {
-      this.matchLogs.push(`[System] Connected to Match ID: ${this.matchId}`);
-      return;
-    }
-
-    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-
-
-    // 2. Detect Bans (Compare array lengths)
-    newState.teams.forEach((newTeam, index) => {
-      const oldTeam = this.match?.teams[index];
-      if (!oldTeam) return;
-
-      if (newTeam.bannedMapIds.length > oldTeam.bannedMapIds.length) {
-        // Find the new ID
-        const newBanId = newTeam.bannedMapIds[newTeam.bannedMapIds.length - 1];
-        // Need to look up map name from NEW state available maps
-        const mapName = newState.availableMaps.find(m => m.id === newBanId)?.name || 'Unknown Map';
-        this.matchLogs.unshift(`[${timestamp}] 🚫 ${newTeam.name} BANNED ${mapName}`);
-      }
-
-      // 3. Detect Picks
-      if (newTeam.pickedMapIds.length > oldTeam.pickedMapIds.length) {
-        const newPickId = newTeam.pickedMapIds[newTeam.pickedMapIds.length - 1];
-        const mapName = newState.availableMaps.find(m => m.id === newPickId)?.name || 'Unknown Map';
-        this.matchLogs.unshift(`[${timestamp}] ✅ ${newTeam.name} PICKED ${mapName}`);
-      }
-    });
-
-    // 4. Detect Side Selection
-    if (newState.deciderSide !== undefined && this.match.deciderSide === undefined) {
-      const pickingTeam = newState.teams[newState.deciderSidePickerTeam]?.name;
-      const side = newState.deciderSide === 0 ? 'ATTACK' : 'DEFENSE';
-      this.matchLogs.unshift(`[${timestamp}] ⚔️ ${pickingTeam} chose to start on ${side}`);
-    }
   }
 
   private initializeIdentityFromRoute(
@@ -435,7 +475,7 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
     this.matchService.getState(id).subscribe({
       next: (state) => {
         this.match = state;
-        this.matchLogs.push(`[System] Loaded match data.`);
+        this.rebuildTimelineRows();
         this.matchSocket.connect(id);
       },
       error: (err) => {
@@ -467,7 +507,7 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
   getBo3MapCardsData() {
     if (!this.match) return [];
     const cards = [];
-    
+
     // Helper to extract image safely
     const getImg = (m: MapInfo) => m.mapImgUrl || m.previewUrl || '';
 
@@ -519,10 +559,10 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
     return this.myTeamIndex === this.match.currentTurnTeam;
   }
 
-    get isBanPhase(): boolean {
+  get isBanPhase(): boolean {
     return this.match?.phase === BAN_PHASE_ID;
   }
-  
+
   get isSidePhase(): boolean {
     return this.match?.phase === SIDE_PHASE_ID;
   }
