@@ -15,90 +15,135 @@
 }
 
 .app-shell {
-  width: 100vw;
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  width: 100%;
   min-height: 100dvh;
+  position: relative;
   display: flex;
   flex-direction: column;
 }
 
+/* Floating header */
 .app-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px; 
-  margin-bottom: 0;   /* Removed margin so it touches content */
-  border-radius: 8px;
-  background: transparent;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  z-index: 50; /* Ensure header stays on top of most content */
-  position: relative;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
+  z-index: 1000;
+  
+  display: flex;
+  align-items: center;
+  background: linear-gradient(
+    to bottom, 
+    rgba(15, 25, 35, 0.9) 0%, 
+    rgba(15, 25, 35, 0.6) 60%, 
+    transparent 100%
+  );
+  padding: 0 32px;
+  height: 80px; /* Fixed height for the header area */
+  box-sizing: border-box;
+  
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .app-title h1 {
   margin: 0;
-  font-size: 1.4rem;
-  letter-spacing: 0.03em;
+  font-family: 'Teko', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ece8e1;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
 }
 
+/* Navigation */
 .app-nav {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-right: 24px;   /* make sure scrollbar does not cover nav content */
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  height: 100%;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .app-nav a {
-  padding: 6px 12px;
-  border-radius: 999px; 
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 24px;
+  
   text-decoration: none;
-  font-size: 0.9rem;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
   font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #e5e7eb;
-  background: rgba(31, 41, 55, 0.9);
-  border: 1px solid transparent;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease,
-    transform 0.08s ease;
+  color: rgba(236, 232, 225, 0.6); /* Dimmed default state */
+  
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
 }
 
 .app-nav a:hover {
-  background: rgba(55, 65, 81, 0.95);
-  border-color: #ece8e1;
-  transform: translateY(-1px);
+  color: #ece8e1;
+  background: rgba(255, 255, 255, 0.05);
 }
 
+/* Active Navigation */
 .app-nav a.active {
-  background: var(--val-red);
-  border-color: var(--val-red);
-  color: #f9fafb;
+  color: #ece8e1;
+  background: linear-gradient(to bottom, rgba(236, 232, 225, 0.1), transparent);
 }
 
+/* The top "light" bar */
+.app-nav a.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ece8e1;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.app-nav a.active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  opacity: 0.5;
+}
+
+/* Main content */
 .app-main {
-  flex: 1;
   width: 100%;
-  margin: 0;
-  padding: 0;
-  position: relative;
-  
+  height: 100%;
+  padding-top: 0; 
+  display: block;
 }
 
+/* Footer */
 .app-footer {
-  font-size: 0.75rem;
-  background: rgba(31, 41, 55, 0.8);
-  color: #6b7280;
-  text-align: center;
-  padding: 8px 0;
-  border-top: 1px solid rgba(31, 41, 55, 0.8);
+  position: fixed;
+  bottom: 0;
+  left: 0;
   width: 100%;
+  padding: 12px;
+  text-align: center;
+  background: linear-gradient(to top, rgba(15, 25, 35, 0.9), transparent);
+  color: #6b7280;
+  font-size: 0.75rem;
   z-index: 50;
+  pointer-events: none; /* Let clicks pass through if needed */
+}
+
+.app-footer span {
+  opacity: 0.6;
 }

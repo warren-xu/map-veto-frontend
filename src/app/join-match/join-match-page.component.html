@@ -1,80 +1,92 @@
-<section class="card">
-  <h2>Join Match</h2>
+<div class="page-wrapper">
+  <div class="center-container">
+    <section class="val-card">
+      <header class="card-header">
+        <h2>JOIN MATCH</h2>
+      </header>
 
-  <!-- enter match ID -->
-  <div class="form-row">
-    <label for="matchId">Match ID</label>
-    <input
-      id="matchId"
-      [(ngModel)]="myMatchId"
-      placeholder="e.g. WDX13H"
-    />
+      <div class="card-body">
+        
+        <div class="form-group">
+          <label for="matchId">MATCH ID</label>
+          <div class="input-row">
+            <input 
+              id="matchId" 
+              [(ngModel)]="myMatchId" 
+              placeholder="E.G. WDX13H" 
+              class="val-input"
+              autocomplete="off"
+            />
+            </div>
+        </div>
+
+        <div class="captain-section">
+          <button 
+            class="val-btn secondary full-width" 
+            (click)="loadMatchInfo()" 
+            [disabled]="loading || !myMatchId || bothCaptainsJoined"
+            *ngIf="!matchPreview"
+          >
+            <span *ngIf="loading">LOADING...</span>
+            <span *ngIf="!loading">FIND MATCH</span>
+          </button>
+
+          <div class="match-preview" *ngIf="matchPreview">
+            <div class="preview-label">MATCH FOUND</div>
+            <div class="preview-teams">
+              <span class="team-name">{{ matchPreview.teams[0]?.name }}</span>
+              <span class="vs">VS</span>
+              <span class="team-name">{{ matchPreview.teams[1]?.name }}</span>
+            </div>
+
+            <ng-container *ngIf="!bothCaptainsJoined">
+              <div class="form-group">
+                <label>SELECT YOUR TEAM</label>
+                <select [(ngModel)]="selectedTeamName" class="val-select">
+                  <option [ngValue]="null" disabled selected>CHOOSE TEAM</option>
+                  <ng-container *ngFor="let t of matchPreview.teams; let ti = index">
+                    <option *ngIf="!captainTakenForTeam(ti)" [ngValue]="t.name">
+                      {{ t.name }}
+                    </option>
+                  </ng-container>
+                </select>
+              </div>
+
+              <button 
+                class="val-btn primary full-width mt-4" 
+                (click)="joinMatchAsCaptain()"
+                [disabled]="loading || !selectedTeamName"
+              >
+                JOIN AS CAPTAIN
+              </button>
+            </ng-container>
+
+            <div class="msg warning" *ngIf="bothCaptainsJoined">
+              BOTH CAPTAIN SLOTS FULL
+            </div>
+          </div>
+        </div>
+
+        <div class="divider">
+          <span>OR</span>
+        </div>
+
+        <button 
+          class="val-btn outline full-width" 
+          (click)="joinAsSpectator()" 
+          [disabled]="loading || !myMatchId"
+        >
+          JOIN AS SPECTATOR
+        </button>
+
+        <div *ngIf="infoMessage" class="msg info">
+          {{ infoMessage }}
+        </div>
+        <div *ngIf="errorMessage" class="msg error">
+          {{ errorMessage }}
+        </div>
+
+      </div>
+    </section>
   </div>
-
-  <!-- Captain join flow -->
-  <button
-    class="secondary-btn"
-    (click)="loadMatchInfo()"
-    [disabled]="loading || !myMatchId || bothCaptainsJoined"
-  >
-    <span *ngIf="!loading && !bothCaptainsJoined">Join as Captain</span>
-    <span *ngIf="loading">Loading...</span>
-    <span *ngIf="!loading && bothCaptainsJoined">Both captains already joined</span>
-  </button>
-
-  <p class="hint" *ngIf="matchPreview">
-    Loaded match:
-    <strong>{{ matchPreview.teams[0]?.name }}</strong>
-    vs
-    <strong>{{ matchPreview.teams[1]?.name }}</strong>
-  </p>
-
-  <!-- Team selection for captain (only while at least one captain slot is free) -->
-  <div class="form-row" *ngIf="matchPreview && !bothCaptainsJoined">
-    <label>Which team are you?</label>
-    <select [(ngModel)]="selectedTeamName">
-      <ng-container *ngFor="let t of matchPreview.teams; let ti = index">
-        <!-- Hide teams whose captain slot is already taken -->
-        <option *ngIf="!captainTakenForTeam(ti)" [ngValue]="t.name">
-          {{ t.name }}
-        </option>
-      </ng-container>
-    </select>
-  </div>
-
-  <button
-    class="primary-btn"
-    (click)="joinMatchAsCaptain()"
-    [disabled]="loading || !matchPreview || bothCaptainsJoined || !selectedTeamName"
-  >
-    <span *ngIf="!loading">Join Match Pick/Ban as Captain</span>
-    <span *ngIf="loading">Joining...</span>
-  </button>
-
-  <p class="hint" *ngIf="matchPreview && bothCaptainsJoined">
-    Both captain slots are already taken for this match. You can still join as a spectator.
-  </p>
-
-  <hr class="divider" />
-
-  <!-- Spectator join flow -->
-  <button
-    class="secondary-btn"
-    (click)="joinAsSpectator()"
-    [disabled]="loading || !myMatchId"
-  >
-    <span *ngIf="!loading">Join as Spectator</span>
-    <span *ngIf="loading">Joining...</span>
-  </button>
-
-  <p class="hint">
-    Captains can make picks and bans. Spectators can view the veto live.
-  </p>
-
-  <div *ngIf="infoMessage" class="info">
-    {{ infoMessage }}
-  </div>
-  <div *ngIf="errorMessage" class="error">
-    {{ errorMessage }}
-  </div>
-</section>
+</div>
