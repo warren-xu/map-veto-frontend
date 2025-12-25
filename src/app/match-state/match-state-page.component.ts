@@ -61,6 +61,15 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
   readonly SIDE_PHASE_ID = SIDE_PHASE_ID;
   readonly COMPLETED_PHASE_ID = COMPLETED_PHASE_ID;
 
+  overlayVisible = false;
+  isOverlayClosing = false;
+  overlayTitle = '';
+  overlaySubtitle = '';
+  overlayClass = ''; // 'banned', 'picked', 'side'
+
+  isTransitioningToSummary = false;
+  private previousStepIndex = -1;
+  
   // Basic state 
   matchId = '';
   match?: MatchState;
@@ -314,6 +323,28 @@ private rebuildTimelineRows(): void {
     }
   }
 
+  getCurrentStepMapName(): string {
+    if (!this.match) return '';
+    
+    const currentStepIdx = this.match.currentStepIndex;
+    let mapId = this.match.stepMapIds?.[currentStepIdx];
+
+    // If the current step doesn't have a map ID yet (is 0), 
+    // and we are in Side Selection, the map was decided in the PREVIOUS step.
+    if (!mapId && this.match.phase === this.SIDE_PHASE_ID && currentStepIdx > 0) {
+       mapId = this.match.stepMapIds?.[currentStepIdx - 1];
+    }
+    console.log(this.match.deciderMapId);
+
+    // Edge Case: the current step is the decider map side selection
+    if (!mapId && this.match.phase === this.SIDE_PHASE_ID && this.match.deciderMapId) {
+       mapId = this.match.deciderMapId;
+    }
+
+    if (!mapId) return '';
+    return this.getMapNameById(mapId);
+  }
+
   getCurrentTeamName(): string {
     if (!this.match) return '';
     const idx = this.match.currentTurnTeam;
@@ -338,6 +369,13 @@ private rebuildTimelineRows(): void {
     return this.match.teams.some((team) => team.pickedMapIds.includes(map.id));
   }
 
+  getPickedByTeamName(map: MapInfo): string {
+  if (!this.match) return '';
+  // Find which team has this map ID in their 'pickedMapIds' array
+  const team = this.match.teams.find(t => t.pickedMapIds.includes(map.id));
+  return team ? team.name : 'Unknown';
+}
+
   isDecider(map: MapInfo): boolean {
     if (!this.match) return false;
     return (
@@ -354,52 +392,57 @@ private rebuildTimelineRows(): void {
     return !!this.match && this.match.seriesType === 'bo3';
   }
 
-  getDeciderMapName(): string {
-    if (!this.match || !this.match.deciderMapId) return '';
-    return this.getMapNameById(this.match.deciderMapId);
-  }
-
-  getDeciderMapUrl(): string {
-    if (!this.match || !this.match.deciderMapId) return '';
-    // Find the map object to get its preview image
-    const map = this.match.availableMaps.find(m => m.id === this.match!.deciderMapId);
-    // Fallback to a default if not found
-    return map && map.mapImgUrl ? map.mapImgUrl : "";
-  }
-
   goHome(): void {
     this.router.navigate(['/']);
   }
-
-  getAttackingTeamName(): string {
-    if (!this.match) return 'TBD';
-    const picker = this.match.deciderSidePickerTeam;
-    if (picker !== TEAM_A && picker !== TEAM_B) return 'TBD';
-
-    const other = picker === TEAM_A ? TEAM_B : TEAM_A;
-
-    return this.match.deciderSide === ATTACK_SIDE_ID
-      ? this.match.teams[picker].name
-      : this.match.teams[other].name;
-  }
-
-  getDefendingTeamName(): string {
-    if (!this.match) return 'TBD';
-    const picker = this.match.deciderSidePickerTeam;
-    if (picker !== TEAM_A && picker !== TEAM_B) return 'TBD';
-
-    const other = picker === TEAM_A ? TEAM_B : TEAM_A;
-
-    return this.match.deciderSide === DEFEND_SIDE_ID
-      ? this.match.teams[picker].name
-      : this.match.teams[other].name;
-  }
-
 
   // Private helpers
 
   private get isBrowser(): boolean {
     return isPlatformBrowser(this.platformId);
+  }
+
+  // Helper to trigger the visual
+  private triggerTransitionOverlay(newState: MatchState, finishedStepIdx: number) {
+    const step = newState.steps[finishedStepIdx];
+    const mapId = newState.stepMapIds?.[finishedStepIdx];
+    const teamName = newState.teams[step.teamIndex]?.name || 'Team';
+    
+    if (!mapId) return; 
+
+    const mapName = this.getMapNameById(mapId);
+
+    // Set text/class (same as before)
+    if (step.action === 0) {
+      this.overlayTitle = `${mapName} BANNED`;
+      this.overlaySubtitle = `BY ${teamName}`;
+      this.overlayClass = 'overlay-ban';
+    } else if (step.action === 1) {
+      this.overlayTitle = `${mapName} PICKED`;
+      this.overlaySubtitle = `BY ${teamName}`;
+      this.overlayClass = 'overlay-pick';
+    } else if (step.action === 2) {
+      const sideVal = newState.stepSideVals?.[finishedStepIdx];
+      const sideName = sideVal === 0 ? 'ATTACK' : 'DEFENSE';
+      this.overlayTitle = `${sideName} CHOSEN`;
+      this.overlaySubtitle = `ON ${mapName} BY ${teamName}`;
+      this.overlayClass = sideVal === 0 ? 'overlay-attack' : 'overlay-defend';
+    }
+
+    // --- ANIMATION SEQUENCE ---
+    this.isOverlayClosing = false; // Reset closing state
+    this.overlayVisible = true;    // Show immediately
+
+    // 1. Show for 2.5 seconds
+    setTimeout(() => {
+      this.isOverlayClosing = true; // Trigger fade-out class
+
+      // 2. Wait 0.5 seconds for fade-out to finish, then remove from DOM
+      setTimeout(() => {
+        this.overlayVisible = false;
+        this.isOverlayClosing = false;
+      }, 500); 
+    }, 2500);
   }
 
   private subscribeToRouteParams(): void {
@@ -418,7 +461,32 @@ private rebuildTimelineRows(): void {
     this.wsSub = this.matchSocket.matchState$.subscribe((state) => {
       if (state) {
         
+        // Check for new steps
+        if (this.match && this.previousStepIndex !== -1) {
+          if (state.currentStepIndex > this.previousStepIndex) {
+            this.triggerTransitionOverlay(state, this.previousStepIndex);
+          }
+        }
+
         this.match = state;
+        this.previousStepIndex = state.currentStepIndex;
+
+        // --- UPDATED COMPLETION LOGIC ---
+        if (this.match.phase === COMPLETED_PHASE_ID) {
+           // 1. Wait 3 seconds so users see the final "PICKED/BANNED" overlay
+           setTimeout(() => {
+             // 2. Start fading screen to black
+             this.isTransitioningToSummary = true;
+             
+             // 3. Navigate after the fade finishes (e.g., 1 second)
+             setTimeout(() => {
+               this.router.navigate(['/match', this.matchId, 'preview']);
+             }, 1000); 
+
+           }, 3000);
+           return;
+        }
+
         this.rebuildTimelineRows();
       }
     });
@@ -474,6 +542,10 @@ private rebuildTimelineRows(): void {
   private initMatchWithWebSocket(id: string): void {
     this.matchService.getState(id).subscribe({
       next: (state) => {
+        if (state.phase === COMPLETED_PHASE_ID) {
+           this.router.navigate(['/match', id, 'preview']);
+           return;
+        }
         this.match = state;
         this.rebuildTimelineRows();
         this.matchSocket.connect(id);
@@ -501,55 +573,6 @@ private rebuildTimelineRows(): void {
     if (this.match.phase === PICK_PHASE_ID) return 'pick';
     if (this.match.phase === SIDE_PHASE_ID) return 'side';
     return null;
-  }
-
-  // Gets data for the 3 columns in BO3
-  getBo3MapCardsData() {
-    if (!this.match) return [];
-    const cards = [];
-
-    // Helper to extract image safely
-    const getImg = (m: MapInfo) => m.mapImgUrl || m.previewUrl || '';
-
-    // Team A Pick
-    if (this.match.teams[0].pickedMapIds.length > 0) {
-      const map = this.match.availableMaps.find(m => m.id === this.match!.teams[0].pickedMapIds[0]);
-      if (map) {
-        cards.push({
-          mapName: map.name,
-          imageUrl: getImg(map),
-          selectedBy: this.match.teams[0].name,
-          accentClass: 'accent-cyan'
-        });
-      }
-    }
-
-    // Team B Pick
-    if (this.match.teams[1].pickedMapIds.length > 0) {
-      const map = this.match.availableMaps.find(m => m.id === this.match!.teams[1].pickedMapIds[0]);
-      if (map) {
-        cards.push({
-          mapName: map.name,
-          imageUrl: getImg(map),
-          selectedBy: this.match.teams[1].name,
-          accentClass: 'accent-red'
-        });
-      }
-    }
-
-    // Decider
-    if (this.match.deciderMapId) {
-      const map = this.match.availableMaps.find(m => m.id === this.match!.deciderMapId);
-      if (map) {
-        cards.push({
-          mapName: map.name,
-          imageUrl: getImg(map),
-          selectedBy: 'Decider',
-          accentClass: 'accent-white'
-        });
-      }
-    }
-    return cards;
   }
 
   get isMyTurn(): boolean {

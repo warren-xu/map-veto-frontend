@@ -1,0 +1,50 @@
+<div class="page-container">
+  <div class="page-enter-overlay"></div>
+  <div *ngIf="loading" class="loading-overlay">Loading Results...</div>
+  
+  <section *ngIf="!loading && isBo1()" class="preview-layout">
+    <div class="preview-bg" *ngIf="getDeciderMapUrl()" [style.background-image]="'url(' + getDeciderMapUrl() + ')'">
+    </div>
+    
+    <div class="preview-content">
+      <div class="side-panel attack-panel">
+        <div class="team-name-large">{{ getAttackingTeamName() }}</div>
+        <h2 class="role-title">ATTACKING</h2>
+      </div>
+      <div class="center-info">
+        <h1 class="map-title-large">{{ getDeciderMapName() }}</h1>
+        <div class="vs-badge">VS</div>
+      </div>
+      <div class="side-panel defend-panel">
+        <div class="team-name-large">{{ getDefendingTeamName() }}</div>
+        <h2 class="role-title">DEFENDING</h2>
+      </div>
+    </div>
+
+    <div class="preview-controls">
+      <button class="nav-btn" (click)="goHome()">← RETURN TO HOME</button>
+    </div>
+  </section>
+
+  <section *ngIf="!loading && isBo3()" class="preview-layout bo3-layout">
+    <div class="preview-controls">
+      <button class="nav-btn" (click)="goHome()">← RETURN TO HOME</button>
+    </div>
+
+    <div class="bo3-grid">
+      <div class="bo3-column" *ngFor="let card of getBo3MapCardsData()"
+        [style.background-image]="'url(' + card.imageUrl + ')'">
+
+        <div class="column-overlay"></div>
+
+        <div class="column-content">
+          <h2 class="bo3-map-name">{{ card.mapName }}</h2>
+          <div class="bo3-info" [ngClass]="card.accentClass">
+            <span class="bo3-label">{{ card.infoLabel }}</span>
+            <span class="bo3-value">{{ card.infoValue }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

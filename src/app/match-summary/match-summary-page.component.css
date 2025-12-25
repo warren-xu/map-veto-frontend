@@ -1,0 +1,281 @@
+/* Lock the page to prevent scrolling */
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: fixed;
+  background: #0f1923;
+  color: white;
+}
+
+.page-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Fonts */
+:host {
+  --val-bg-dark: #0f1923;
+  --val-bg-card: #1c252e;
+  --val-cyan: #00ffbc;
+  --val-red: #ff4655;
+  --val-white: #ece8e1;
+  --val-grey: #768079;
+  --font-header: 'Teko', sans-serif;
+  --font-body: 'Oswald', sans-serif;
+}
+
+.preview-layout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--val-bg-dark);
+}
+
+.preview-controls {
+  position: absolute;
+  top: 5rem;
+  left: 2rem;
+  z-index: 101;
+}
+
+.nav-btn {
+  background: rgba(15, 25, 35, 0.8);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  font-family: var(--font-header);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: var(--val-red);
+  border-color: var(--val-red);
+}
+
+/* --- BO1 Styles --- */
+
+.preview-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  width: 100%;
+  max-width: 1600px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4rem;
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 35%;
+}
+
+.attack-panel {
+  align-items: flex-start;
+  text-align: left;
+  border-left: 8px solid #00ffbc;
+  padding-left: 2rem;
+}
+
+.defend-panel {
+  align-items: flex-end;
+  text-align: right;
+  border-right: 8px solid #ff4655;
+  padding-right: 2rem;
+}
+
+.team-name-large {
+  font-family: 'Teko', sans-serif;
+  font-size: 5rem;
+  line-height: 0.8;
+  margin: 0;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.role-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-top: 1rem;
+  color: #ece8e1;
+}
+
+.attack-panel .role-title {
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(0, 255, 188, 0.4);
+}
+
+.defend-panel .role-title {
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 70, 85, 0.4);
+}
+
+.preview-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+  -webkit-mask-image: radial-gradient(ellipse at center, black 40%, rgba(0,0,0,0.8) 60%, transparent 100%);
+  mask-image: radial-gradient(ellipse at center, black 40%, rgba(0,0,0,0.8) 60%, transparent 100%);
+  transform: scale(1.05);
+  filter: brightness(1.2) contrast(1.1);
+}
+
+.preview-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(
+    ellipse at center, 
+    rgba(15, 25, 35, 0.3) 0%, 
+    rgba(15, 25, 35, 0.7) 60%, 
+    rgba(15, 25, 35, 1) 100% 
+  );
+}
+
+.center-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.map-title-large {
+  font-family: var(--font-header);
+  font-size: 8rem;
+  position: absolute;
+  top: -90%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.vs-badge {
+  font-family: var(--font-header);
+  font-size: 4rem;
+  background: var(--val-red);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  transform: skew(-20deg);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* Bo3 Styles */
+
+.bo3-layout {
+  flex-direction: column;
+}
+
+.bo3-grid {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.bo3-column {
+  flex: 1;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  border-right: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: flex 0.4s ease;
+  overflow: hidden;
+}
+
+.bo3-column:last-child { border-right: none; }
+
+.bo3-column:hover { flex: 1.3; }
+
+.column-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 25, 35, 0.75);
+  transition: background 0.4s;
+}
+
+.bo3-column:hover .column-overlay {
+  background: rgba(15, 25, 35, 0.4);
+}
+
+.column-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  transform: translateY(0);
+  transition: transform 0.4s;
+}
+
+.bo3-column:hover .column-content { transform: scale(1.05); }
+
+.bo3-map-name {
+  font-family: 'Teko', sans-serif;
+  font-size: 6rem;
+  color: white;
+  margin: 0;
+  text-transform: uppercase;
+  line-height: 0.9;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+
+.bo3-info {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 2rem;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.bo3-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.9rem;
+  color: #ccc;
+  letter-spacing: 2px;
+}
+
+.bo3-value {
+  font-family: 'Teko', sans-serif;
+  font-size: 2.5rem;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.accent-cyan .bo3-value { color: #00ffbc; }
+.accent-cyan { border-bottom: 4px solid #00ffbc; }
+.accent-red .bo3-value { color: #ff4655; }
+.accent-red { border-bottom: 4px solid #ff4655; }
+.accent-white .bo3-value { color: white; }
+.accent-white { border-bottom: 4px solid white; }
+
+.page-enter-overlay {
+  position: fixed;
+  inset: 0;
+  background: black;
+  z-index: 10000;
+  animation: fadeIn 1.5s ease-in-out forwards;
+  pointer-events: none;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 1; }
+  50% { opacity: 1; } /* Hold black briefly to mask loading */
+  100% { opacity: 0; }
+}

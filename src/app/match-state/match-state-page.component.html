@@ -30,7 +30,8 @@
           </div>
 
           <!-- map -->
-          <div class="step-body" [style.background-image]="row.mapImgUrl ? ('url(' + row.mapImgUrl + ')') : 'none'">
+          <div class="step-body" *ngIf="row.kind !== 'SIDE'"
+            [style.background-image]="row.mapImgUrl ? ('url(' + row.mapImgUrl + ')') : 'none'">
             <div class="step-overlay"></div>
 
             <div class="step-body-content">
@@ -49,161 +50,113 @@
     </aside>
     <main class="game-interface">
 
+      <section *ngIf="match as m; else loadingOrError" class="match-layout">
 
-
-      <ng-container *ngIf="match?.phase === COMPLETED_PHASE_ID; else matchInProgress">
-
-        <section *ngIf="isBo1()" class="preview-layout">  
-          <div class="preview-bg" *ngIf="getDeciderMapUrl()"
-            [style.background-image]="'url(' + getDeciderMapUrl() + ')'">
-          </div>
-          <div class="preview-content">
-            <div class="side-panel attack-panel">
-              <div class="team-name-large">{{ getAttackingTeamName() }}</div>
-              <h2 class="role-title">ATTACKING</h2>
-            </div>
-            <div class="center-info">
-              <h1 class="map-title-large">{{ getDeciderMapName() }}</h1>
-              <div class="vs-badge">VS</div>
-            </div>
-            <div class="side-panel defend-panel">
-              <div class="team-name-large">{{ getDefendingTeamName() }}</div>
-              <h2 class="role-title">DEFENDING</h2>
-            </div>
-          </div>
-          <div class="preview-controls">
-            <button class="nav-btn" (click)="goHome()">← RETURN TO HOME</button>
-          </div>
-        </section>
-
-        <section *ngIf="isBo3()" class="preview-layout">
-          <div class="preview-controls">
-            <button class="nav-btn" (click)="goHome()">← RETURN TO HOME</button>      
-          </div>
-
-          <div class="bo3-grid">
-            <div class="bo3-column" *ngFor="let card of getBo3MapCardsData()"
-              [style.background-image]="'url(' + card.imageUrl + ')'">
-
-              <div class="column-overlay"></div>
-
-              <div class="column-content">
-                <h2 class="bo3-map-name">{{ card.mapName }}</h2>
-                <div class="bo3-info" [ngClass]="card.accentClass">
-                  <span class="bo3-label">PICKED BY</span>
-                  <span class="bo3-value">{{ card.selectedBy }}</span>
+        <section class="card main-stage">
+          <header class="stage-header">
+            <div class="stage-top">
+              <div class="stage-left">
+                <div class="stage-meta">
+                  <div class="meta-item">
+                    <span class="meta-label">Match ID</span>
+                    <code class="meta-value">{{ matchId }}</code>
+                  </div>
                 </div>
               </div>
+
             </div>
-          </div>
-        </section>
-      </ng-container>
 
-      <ng-template #matchInProgress>
-        <section *ngIf="match as m; else loadingOrError" class="match-layout">
+            <!-- Tells User the Phase -->
+            <div class="stage-callout">
+              <div class="callout-text">
+                <ng-container *ngIf="isSidePhase; else mapPhaseHeader">
+                  <ng-container *ngIf="isMyTurn; else enemySideTurn">
+                    <h2 class="header-title my-turn">
+                      CHOOSE SIDE ON <span class="val-white">{{ getCurrentStepMapName() }}</span>
+                    </h2>
+                  </ng-container>
+                  <ng-template #enemySideTurn>
+                    <h2 class="header-title enemy-text">
+                      {{ role === 'spectator' ? 'SPECTATING:' : 'OPPONENT CHOOSING SIDE ON' }}
+                      <span class="val-cyan-text">{{ getCurrentStepMapName() }}</span>
+                    </h2>
+                  </ng-template>
+                </ng-container>
 
-          <section class="card main-stage">
-            <header class="stage-header">
-                <div class="stage-top">
-                  <div class="stage-left">
-                    <div class="stage-meta">
-                      <div class="meta-item">                    
-                        <span class="meta-label">Match ID</span>
-                        <code class="meta-value">{{ matchId }}</code>
-                      </div>
+                <ng-template #mapPhaseHeader>
+                  <ng-container *ngIf="isMyTurn; else enemyMapTurn">
+                    <h2 class="header-title">
+                      YOUR TEAM
+                      <span [ngClass]="actionColorClass">
+                        {{ isBanPhase ? 'BANS' : 'CHOOSES' }}
+                      </span>
+                      A MAP
+                    </h2>
+                  </ng-container>
+                  <ng-template #enemyMapTurn>
+                    <h2 class="header-title enemy-text">
+                      {{ role === 'spectator' ? 'SPECTATING:' : 'WAITING FOR OTHER TEAM...' }}
+                    </h2>
+                  </ng-template>
+                </ng-template>
+              </div>
+
+              <div class="stage-right">
+                <span class="pill pill-turn" [class.friendly]="role === 'captain' && isMyTurn"
+                  [class.enemy]="role === 'captain' && !isMyTurn">
+                  {{ getTurnDisplay() }}
+                </span>
+              </div>
+            </div>
+          </header>
+
+
+          <ng-container *ngIf="isSidePhase; else mapGridContent">
+            <div class="side-selection-container">
+              <button class="side-btn attack" (click)="onSideClick(0)" [disabled]="!isMyTurn">
+                <div class="side-icon"><img src="public/sideimgs/attack-icon.png" alt="Attack" /></div>
+                <span class="side-label">ATTACK</span>
+              </button>
+              <div class="vs-divider">OR</div>
+              <button class="side-btn defense" (click)="onSideClick(1)" [disabled]="!isMyTurn">
+                <div class="side-icon"><img src="public/sideimgs/defense-icon.png" alt="Defense" /></div>
+                <span class="side-label">DEFENSE</span>
+              </button>
+            </div>
+          </ng-container>
+
+          <ng-template #mapGridContent>
+            <div class="maps-grid">
+              <button *ngFor="let map of m.availableMaps; trackBy: trackByMapId" class="map-btn" type="button"
+                [disabled]="!isMyTurn" [class.banned]="isMapBanned(map)" [class.picked]="isMapPicked(map)"
+                [class.decider]="isDecider(map)" (click)="onMapClick(map)">
+                <div class="map-media-wrapper">
+                  <video #videoRef class="map-video" *ngIf="map.previewUrl" [src]="map.previewUrl" playsinline loop
+                    muted preload="metadata" controlslist="nodownload noplaybackrate noremoteplayback"
+                    (mouseenter)="onMapHoverEnter(videoRef)" (mouseleave)="onMapHoverLeave(videoRef)"></video>
+
+                  <div class="map-static-img" *ngIf="map.mapImgUrl"
+                    [style.background-image]="'url(' + map.mapImgUrl + ')'"></div>
+
+                  <div class="map-overlay">
+                    <div class="map-name">{{ map.name }}</div>
+                    <div class="map-status-pill" [class.decider]="isDecider(map)"
+                      [class.banned]="!isDecider(map) && isMapBanned(map)"
+                      [class.picked]="!isDecider(map) && isMapPicked(map)">
+
+                      {{ (isMapBanned(map) ? 'BANNED' : (isMapPicked(map) ? 'PICKED' : 'AVAILABLE')) }}
+
                     </div>
                   </div>
-
                 </div>
-
-                <!-- Tells User the Phase -->
-                <div class="stage-callout">
-                  <div class="callout-text">
-                    <ng-container *ngIf="isSidePhase; else mapPhaseHeader">
-                      <ng-container *ngIf="isMyTurn; else enemySideTurn">
-                        <h2 class="header-title my-turn">CHOOSE STARTING SIDE</h2>
-                      </ng-container>
-                      <ng-template #enemySideTurn>
-                        <h2 class="header-title enemy-text">
-                          {{ role === 'spectator' ? 'SPECTATING:' : 'WAITING FOR OTHER TEAM...' }}
-                        </h2>
-                      </ng-template>
-                    </ng-container>
-
-                    <ng-template #mapPhaseHeader>
-                      <ng-container *ngIf="isMyTurn; else enemyMapTurn">
-                        <h2 class="header-title">
-                          YOUR TEAM
-                          <span [ngClass]="actionColorClass">
-                            {{ isBanPhase ? 'BANS' : 'CHOOSES' }}
-                          </span>
-                          A MAP
-                        </h2>
-                      </ng-container>
-                      <ng-template #enemyMapTurn>
-                        <h2 class="header-title enemy-text">
-                          {{ role === 'spectator' ? 'SPECTATING:' : 'WAITING FOR OTHER TEAM...' }}
-                        </h2>
-                      </ng-template>
-                    </ng-template>
-                  </div>
-
-                  <div class="stage-right">
-                    <span class="pill pill-turn" [class.friendly]="role === 'captain' && isMyTurn"
-                      [class.enemy]="role === 'captain' && !isMyTurn">
-                      {{ getTurnDisplay() }}
-                    </span>
-                  </div>
-                </div>
-            </header>
-
-
-            <ng-container *ngIf="isSidePhase; else mapGridContent">
-              <div class="side-selection-container">
-                <button class="side-btn attack" (click)="onSideClick(0)" [disabled]="!isMyTurn">
-                  <div class="side-icon"><img src="public/sideimgs/attack-icon.png" alt="Attack" /></div>
-                  <span class="side-label">ATTACK</span>
-                </button>
-                <div class="vs-divider">OR</div>
-                <button class="side-btn defense" (click)="onSideClick(1)" [disabled]="!isMyTurn">
-                  <div class="side-icon"><img src="public/sideimgs/defense-icon.png" alt="Defense" /></div>
-                  <span class="side-label">DEFENSE</span>
-                </button>
-              </div>
-            </ng-container>
-
-            <ng-template #mapGridContent>
-              <div class="maps-grid">
-                <button *ngFor="let map of m.availableMaps; trackBy: trackByMapId" class="map-btn" type="button"
-                  [disabled]="!isMyTurn" [class.banned]="isMapBanned(map)" [class.picked]="isMapPicked(map)"
-                  [class.decider]="isDecider(map)" (click)="onMapClick(map)">
-                  <div class="map-media-wrapper">
-                    <video #videoRef class="map-video" *ngIf="map.previewUrl" [src]="map.previewUrl" playsinline loop
-                      muted preload="metadata" controlslist="nodownload noplaybackrate noremoteplayback"
-                      (mouseenter)="onMapHoverEnter(videoRef)" (mouseleave)="onMapHoverLeave(videoRef)"></video>
-
-                    <div class="map-static-img" *ngIf="map.mapImgUrl"
-                      [style.background-image]="'url(' + map.mapImgUrl + ')'"></div>
-
-                    <div class="map-overlay">
-                      <div class="map-name">{{ map.name }}</div>
-                      <div class="map-status-pill" [class.decider]="isDecider(map)"
-                        [class.banned]="!isDecider(map) && isMapBanned(map)"
-                        [class.picked]="!isDecider(map) && !isMapBanned(map) && isMapPicked(map)">
-                        {{ isDecider(map) ? 'DECIDER' : (isMapBanned(map) ? 'BANNED' : (isMapPicked(map) ? 'PICKED' :
-                        'AVAILABLE')) }}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              </div>
-            </ng-template>
-          </section>
-
-          <div *ngIf="loading" class="loading">Processing...</div>
-          <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+              </button>
+            </div>
+          </ng-template>
         </section>
-      </ng-template>
+
+        <div *ngIf="loading" class="loading">Processing...</div>
+        <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+      </section>
 
       <ng-template #loadingOrError>
         <section class="card loading-card">
@@ -214,3 +167,11 @@
     </main>
   </div>
 </div>
+<div class="transition-overlay" *ngIf="overlayVisible" [ngClass]="overlayClass" [class.closing]="isOverlayClosing">
+  <div class="overlay-content">
+    <h1 class="overlay-title">{{ overlayTitle }}</h1>
+    <h2 class="overlay-subtitle">{{ overlaySubtitle }}</h2>
+  </div>
+</div>
+
+<div class="page-exit-overlay" *ngIf="isTransitioningToSummary"></div>
