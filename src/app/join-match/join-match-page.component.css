@@ -153,12 +153,11 @@ label {
 
 .val-btn.outline {
   background: transparent;
-  color: #768079;
-  border: 1px solid #768079;
+  color: white;
+  border: 1px solid white;
 }
 .val-btn.outline:hover:not(:disabled) {
-  color: white;
-  border-color: white;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .val-btn:disabled {
