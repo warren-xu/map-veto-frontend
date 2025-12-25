@@ -134,7 +134,7 @@
           </ng-container>
 
           <ng-template #mapGridContent>
-            <div class="maps-grid" [class.inactive-turn]="isInteractionDisabled">
+            <div class="maps-grid" [class.inactive-turn]="isInteractionDisabled()">
               <button *ngFor="let map of m.availableMaps; trackBy: trackByMapId" class="map-btn" type="button"
                 [disabled]="!isMyTurn" [class.banned]="isMapBanned(map)" [class.picked]="isMapPicked(map)"
                 [class.decider]="isDecider(map)" (click)="onMapClick(map)">

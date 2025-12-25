@@ -225,7 +225,6 @@
 .stage-right{
   display: inline-flex;
   align-items: center;
-  margin-bottom: 6px;
   margin-left: 10px;
   gap: 10px;
 
