@@ -69,7 +69,7 @@ export class MatchPreviewComponent implements OnInit, OnDestroy {
     this.router.navigate(['/']);
   }
 
-  // --- BO1 Helpers ---
+  // Bo1 Helpers
   getDeciderMapName(): string {
     if (!this.match || !this.match.deciderMapId) return '';
     return this.getMapNameById(this.match.deciderMapId);

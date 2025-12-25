@@ -44,7 +44,12 @@
 .game-interface {
   flex: 1;
   padding: 2rem;
+  width: 100%;
+  height: auto;
   display: flex;
+  padding: 1rem;
+  box-sizing: border-box;
+  display: block;
   justify-content: center; /* Center the portrait UI horizontally */
   align-items: flex-start; /* Align to top */
 }
@@ -60,15 +65,6 @@
 /* Ensure cards inside match-layout are semi-transparent to show bg */
 .match-layout .card {
   background: transparent;
-}
-
-.game-interface {
-  flex: 1;
-  width: 100%;
-  height: auto;
-  padding: 1rem;
-  box-sizing: border-box;
-  display: block;
 }
 
 .match-layout {
@@ -364,6 +360,13 @@
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
   width: 100%;
+}
+
+.maps-grid.inactive-turn {
+  filter: grayscale(60%); /* Make it dimmer so captain can distinguish it's not their turn */
+  opacity: 0.6;           /* Dims the screen */
+  pointer-events: none; 
+  cursor: not-allowed;
 }
 
 @media (min-width: 1400px) {

@@ -270,7 +270,7 @@
   inset: 0;
   background: black;
   z-index: 10000;
-  animation: fadeIn 1.5s ease-in-out forwards;
+  animation: fadeIn 0.5s ease-in-out forwards;
   pointer-events: none;
 }
 
@@ -308,6 +308,6 @@
 
 @keyframes fadeIn {
   0% { opacity: 1; }
-  50% { opacity: 1; } /* Hold black briefly to mask loading */
+  50% { opacity: 0.5; } /* Hold black briefly to mask loading */
   100% { opacity: 0; }
 }

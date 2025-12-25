@@ -68,7 +68,6 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
   overlayClass = ''; // 'banned', 'picked', 'side'
   matchIdCopied = false;
 
-  isTransitioningToSummary = false;
   private previousStepIndex = -1;
 
   // Basic state 
@@ -297,6 +296,17 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
 
   // Helpers
 
+  // Check if UI should be disabled if not captain's turn
+  isInteractionDisabled(): boolean {
+    if (!this.match) return false;
+
+    const isSpectator = this.myTeamIndex !== TEAM_A && this.myTeamIndex !== TEAM_B;
+    
+    if (isSpectator) return false;
+
+    return this.match.currentTurnTeam != this.myTeamIndex;
+  }
+
   trackByMapId(index: number, map: MapInfo): number {
     return map.id;
   }
@@ -451,7 +461,6 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
     this.isOverlayClosing = false; // Reset closing state
     this.overlayVisible = true;    // Show immediately
 
-    // Show for 2.5 seconds
     setTimeout(() => {
       this.isOverlayClosing = true; // Trigger fade-out class
 
@@ -460,7 +469,7 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
         this.overlayVisible = false;
         this.isOverlayClosing = false;
       }, 500);
-    }, 2500);
+    }, 1500);
   }
 
   private subscribeToRouteParams(): void {
@@ -504,16 +513,9 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
 
         if (this.match.phase === COMPLETED_PHASE_ID) {
           // Wait 3 seconds so users see the final "PICKED/BANNED" overlay
-          setTimeout(() => {
-            // Start fading screen to black
-            this.isTransitioningToSummary = true;
+          this.router.navigate(['/match', this.matchId, 'preview']);
 
-            // Navigate after the fade finishes (e.g., 1 second)
-            setTimeout(() => {
-              this.router.navigate(['/match', this.matchId, 'preview']);
-            }, 1000);
-
-          }, 3000);
+          
           return;
         }
 
