@@ -5,6 +5,11 @@
   <section *ngIf="!loading && isBo1()" class="preview-layout">
     <div class="preview-bg" *ngIf="getDeciderMapUrl()" [style.background-image]="'url(' + getDeciderMapUrl() + ')'">
     </div>
+
+    <div class="preview-meta">
+        <span class="meta-label">MATCH ID</span>
+        <code class="meta-value">{{ matchId }}</code>
+    </div>
     
     <div class="preview-content">
       <div class="side-panel attack-panel">
