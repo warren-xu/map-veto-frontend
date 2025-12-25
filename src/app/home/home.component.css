@@ -1,0 +1,119 @@
+/* --- LAYOUT --- */
+.page-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  /* Account for header height if it's fixed, though centering vertically usually looks fine */
+  padding-top: 60px; 
+  box-sizing: border-box;
+}
+
+.center-container {
+  width: 100%;
+  max-width: 600px; /* Wider than normal forms */
+  padding: 0 16px;
+}
+
+/* --- CARD STYLE --- */
+.val-card {
+  background: rgba(15, 25, 35, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  position: relative;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+/* Top/Bottom accents */
+.val-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%; /* Centered top bar */
+  height: 4px;
+  background: var(--val-red, #ff4655);
+}
+
+.val-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+/* --- TYPOGRAPHY --- */
+.hero-title {
+  font-family: 'Teko', sans-serif;
+  font-size: 6rem;
+  line-height: 0.8;
+  margin: 0;
+  color: #ece8e1;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.hero-subtitle {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.2rem;
+  color: var(--val-cyan, #00ffbc);
+  margin: 10px 0 2rem 0;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  font-weight: 400;
+}
+
+.hero-desc {
+  font-family: 'Oswald', sans-serif;
+  color: #768079;
+  font-size: 1rem;
+  max-width: 80%;
+  margin: 0 auto 3rem auto;
+  line-height: 1.5;
+}
+
+/* --- BUTTONS --- */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.val-btn {
+  border: none;
+  cursor: pointer;
+  font-family: 'Teko', sans-serif;
+  font-size: 1.8rem; /* Bigger font for home */
+  padding: 16px 24px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.2s ease;
+  width: 100%;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+/* Primary: Red */
+.val-btn.primary {
+  background: var(--val-red, #ff4655);
+  color: white;
+}
+.val-btn.primary:hover {
+  background: #ff2b3d;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(255, 70, 85, 0.2);
+}
+
+/* Secondary: Outline/Dark */
+.val-btn.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.val-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
