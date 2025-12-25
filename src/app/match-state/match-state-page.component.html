@@ -57,9 +57,17 @@
             <div class="stage-top">
               <div class="stage-left">
                 <div class="stage-meta">
-                  <div class="meta-item">
+                  <div class="meta-item" (click)="copyMatchId()" title="Click to copy Match ID">
                     <span class="meta-label">Match ID</span>
-                    <code class="meta-value">{{ matchId }}</code>
+
+                    <div class="match-id-wrapper">
+                      <code class="meta-value">{{ matchId }}</code>
+
+                      <span class="copy-feedback" [class.success]="matchIdCopied">
+                        <span *ngIf="!matchIdCopied" class="icon">❐</span>
+                        <span *ngIf="matchIdCopied" class="icon-check">✓</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -144,7 +152,7 @@
                       [class.banned]="!isDecider(map) && isMapBanned(map)"
                       [class.picked]="!isDecider(map) && isMapPicked(map)">
 
-                      {{ (isMapBanned(map) ? 'BANNED' : (isMapPicked(map) ? 'PICKED' : 'AVAILABLE')) }}
+                      {{ (isMapBanned(map) ? 'BANNED' : (isMapPicked(map) ? 'PICKED' : '')) }}
 
                     </div>
                   </div>

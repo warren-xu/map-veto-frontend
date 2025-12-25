@@ -102,13 +102,51 @@
   gap:10px;
 }
 
-.meta-item{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:16px 20px;
-  border-radius:12px;
-  background:rgba(255,255,255,0.04);
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  cursor: pointer; 
+  transition: background 0.2s ease;
+  user-select: none;
+}
+
+.meta-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.match-id-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* The Copy Icon/Feedback */
+.copy-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+  width: 20px;
+}
+
+.meta-item:hover .copy-feedback {
+  color: var(--val-white);
+  transform: scale(1.1);
+}
+
+.copy-feedback.success {
+  color: var(--val-cyan);
+  transform: scale(1.2);
+}
+
+.icon-check {
+  font-weight: bold;
 }
 
 .meta-row, .status-row {

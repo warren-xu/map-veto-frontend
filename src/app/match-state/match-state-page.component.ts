@@ -66,6 +66,7 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
   overlayTitle = '';
   overlaySubtitle = '';
   overlayClass = ''; // 'banned', 'picked', 'side'
+  matchIdCopied = false;
 
   isTransitioningToSummary = false;
   private previousStepIndex = -1;
@@ -119,6 +120,23 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.warn('Could not play preview video', e);
     }
+  }
+
+  copyMatchId(): void {
+    if (!this.matchId) return;
+    
+    // Write to clipboard
+    navigator.clipboard.writeText(this.matchId).then(() => {
+      // Show checkmark
+      this.matchIdCopied = true;
+      
+      // Reset back to normal after 2 seconds
+      setTimeout(() => {
+        this.matchIdCopied = false;
+      }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+    });
   }
 
   onMapHoverLeave(video: HTMLVideoElement | null): void {
@@ -429,15 +447,15 @@ private rebuildTimelineRows(): void {
       this.overlayClass = sideVal === 0 ? 'overlay-attack' : 'overlay-defend';
     }
 
-    // --- ANIMATION SEQUENCE ---
+    // ANIMATION SEQUENCE
     this.isOverlayClosing = false; // Reset closing state
     this.overlayVisible = true;    // Show immediately
 
-    // 1. Show for 2.5 seconds
+    // Show for 2.5 seconds
     setTimeout(() => {
       this.isOverlayClosing = true; // Trigger fade-out class
 
-      // 2. Wait 0.5 seconds for fade-out to finish, then remove from DOM
+      // Wait 0.5 seconds for fade-out to finish, then remove from DOM
       setTimeout(() => {
         this.overlayVisible = false;
         this.isOverlayClosing = false;
@@ -471,14 +489,13 @@ private rebuildTimelineRows(): void {
         this.match = state;
         this.previousStepIndex = state.currentStepIndex;
 
-        // --- UPDATED COMPLETION LOGIC ---
         if (this.match.phase === COMPLETED_PHASE_ID) {
-           // 1. Wait 3 seconds so users see the final "PICKED/BANNED" overlay
+           // Wait 3 seconds so users see the final "PICKED/BANNED" overlay
            setTimeout(() => {
-             // 2. Start fading screen to black
+             // Start fading screen to black
              this.isTransitioningToSummary = true;
-             
-             // 3. Navigate after the fade finishes (e.g., 1 second)
+
+             // Navigate after the fade finishes (e.g., 1 second)
              setTimeout(() => {
                this.router.navigate(['/match', this.matchId, 'preview']);
              }, 1000); 
