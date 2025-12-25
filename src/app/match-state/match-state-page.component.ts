@@ -70,7 +70,7 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
 
   isTransitioningToSummary = false;
   private previousStepIndex = -1;
-  
+
   // Basic state 
   matchId = '';
   match?: MatchState;
@@ -124,12 +124,12 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
 
   copyMatchId(): void {
     if (!this.matchId) return;
-    
+
     // Write to clipboard
     navigator.clipboard.writeText(this.matchId).then(() => {
       // Show checkmark
       this.matchIdCopied = true;
-      
+
       // Reset back to normal after 2 seconds
       setTimeout(() => {
         this.matchIdCopied = false;
@@ -263,36 +263,36 @@ export class MatchStatePageComponent implements OnInit, OnDestroy {
   }
   timelineRows: TimelineRow[] = [];
 
-private rebuildTimelineRows(): void {
-  const m = this.match;
-  if (!m?.steps?.length) {
-    this.timelineRows = [];
-    return;
+  private rebuildTimelineRows(): void {
+    const m = this.match;
+    if (!m?.steps?.length) {
+      this.timelineRows = [];
+      return;
+    }
+
+    this.timelineRows = m.steps.map((s, i) => {
+      const kind = this.actionToKind(s.action);
+      const mapId = m.stepMapIds?.[i] ?? 0;
+      const sideVal = m.stepSideVals?.[i];
+
+      const map = mapId ? this.getMapById(mapId) : undefined;
+
+      return {
+        index: i,
+        stepNum: this.pad2(i + 1),
+        teamIndex: s.teamIndex,
+        kind,
+        rightLabel: this.rightLabelFor(kind),
+        isCurrent: m.currentStepIndex === i,
+        isDone: !!mapId,
+
+        mapName: map?.name,
+        mapImgUrl: map?.mapImgUrl,
+
+        sideLabel: kind === 'SIDE' ? this.sideToLabel(sideVal) : undefined,
+      };
+    });
   }
-
-  this.timelineRows = m.steps.map((s, i) => {
-    const kind = this.actionToKind(s.action);
-    const mapId = m.stepMapIds?.[i] ?? 0;
-    const sideVal = m.stepSideVals?.[i];
-
-    const map = mapId ? this.getMapById(mapId) : undefined;
-
-    return {
-      index: i,
-      stepNum: this.pad2(i + 1),
-      teamIndex: s.teamIndex,
-      kind,
-      rightLabel: this.rightLabelFor(kind),
-      isCurrent: m.currentStepIndex === i,
-      isDone: !!mapId,
-
-      mapName: map?.name,
-      mapImgUrl: map?.mapImgUrl,
-
-      sideLabel: kind === 'SIDE' ? this.sideToLabel(sideVal) : undefined,
-    };
-  });
-}
 
 
   // Helpers
@@ -343,20 +343,20 @@ private rebuildTimelineRows(): void {
 
   getCurrentStepMapName(): string {
     if (!this.match) return '';
-    
+
     const currentStepIdx = this.match.currentStepIndex;
     let mapId = this.match.stepMapIds?.[currentStepIdx];
 
     // If the current step doesn't have a map ID yet (is 0), 
     // and we are in Side Selection, the map was decided in the PREVIOUS step.
     if (!mapId && this.match.phase === this.SIDE_PHASE_ID && currentStepIdx > 0) {
-       mapId = this.match.stepMapIds?.[currentStepIdx - 1];
+      mapId = this.match.stepMapIds?.[currentStepIdx - 1];
     }
     console.log(this.match.deciderMapId);
 
     // Edge Case: the current step is the decider map side selection
     if (!mapId && this.match.phase === this.SIDE_PHASE_ID && this.match.deciderMapId) {
-       mapId = this.match.deciderMapId;
+      mapId = this.match.deciderMapId;
     }
 
     if (!mapId) return '';
@@ -388,11 +388,11 @@ private rebuildTimelineRows(): void {
   }
 
   getPickedByTeamName(map: MapInfo): string {
-  if (!this.match) return '';
-  // Find which team has this map ID in their 'pickedMapIds' array
-  const team = this.match.teams.find(t => t.pickedMapIds.includes(map.id));
-  return team ? team.name : 'Unknown';
-}
+    if (!this.match) return '';
+    // Find which team has this map ID in their 'pickedMapIds' array
+    const team = this.match.teams.find(t => t.pickedMapIds.includes(map.id));
+    return team ? team.name : 'Unknown';
+  }
 
   isDecider(map: MapInfo): boolean {
     if (!this.match) return false;
@@ -425,8 +425,8 @@ private rebuildTimelineRows(): void {
     const step = newState.steps[finishedStepIdx];
     const mapId = newState.stepMapIds?.[finishedStepIdx];
     const teamName = newState.teams[step.teamIndex]?.name || 'Team';
-    
-    if (!mapId) return; 
+
+    if (!mapId) return;
 
     const mapName = this.getMapNameById(mapId);
 
@@ -459,7 +459,7 @@ private rebuildTimelineRows(): void {
       setTimeout(() => {
         this.overlayVisible = false;
         this.isOverlayClosing = false;
-      }, 500); 
+      }, 500);
     }, 2500);
   }
 
@@ -478,30 +478,43 @@ private rebuildTimelineRows(): void {
   private subscribeToMatchUpdates(): void {
     this.wsSub = this.matchSocket.matchState$.subscribe((state) => {
       if (state) {
-        
-        // Check for new steps
         if (this.match && this.previousStepIndex !== -1) {
           if (state.currentStepIndex > this.previousStepIndex) {
             this.triggerTransitionOverlay(state, this.previousStepIndex);
           }
         }
 
-        this.match = state;
-        this.previousStepIndex = state.currentStepIndex;
+        // if receiving light version of json, only update dynamic fields
+        if (this.match && !state.availableMaps) {
+          this.match = {
+            ...this.match,
+            ...state,
+            teams: state.teams.map((newTeamData: any, index: number) => ({
+              ...newTeamData,
+              name: this.match!.teams[index].name
+            })),
+            availableMaps: this.match.availableMaps,
+            steps: this.match.steps
+          };
+        } else {
+          // Initial load or full update
+          this.match = state;
+        }
+        this.previousStepIndex = this.match.currentStepIndex;
 
         if (this.match.phase === COMPLETED_PHASE_ID) {
-           // Wait 3 seconds so users see the final "PICKED/BANNED" overlay
-           setTimeout(() => {
-             // Start fading screen to black
-             this.isTransitioningToSummary = true;
+          // Wait 3 seconds so users see the final "PICKED/BANNED" overlay
+          setTimeout(() => {
+            // Start fading screen to black
+            this.isTransitioningToSummary = true;
 
-             // Navigate after the fade finishes (e.g., 1 second)
-             setTimeout(() => {
-               this.router.navigate(['/match', this.matchId, 'preview']);
-             }, 1000); 
+            // Navigate after the fade finishes (e.g., 1 second)
+            setTimeout(() => {
+              this.router.navigate(['/match', this.matchId, 'preview']);
+            }, 1000);
 
-           }, 3000);
-           return;
+          }, 3000);
+          return;
         }
 
         this.rebuildTimelineRows();
@@ -560,8 +573,8 @@ private rebuildTimelineRows(): void {
     this.matchService.getState(id).subscribe({
       next: (state) => {
         if (state.phase === COMPLETED_PHASE_ID) {
-           this.router.navigate(['/match', id, 'preview']);
-           return;
+          this.router.navigate(['/match', id, 'preview']);
+          return;
         }
         this.match = state;
         this.rebuildTimelineRows();

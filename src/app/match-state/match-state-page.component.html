@@ -152,7 +152,7 @@
                       [class.banned]="!isDecider(map) && isMapBanned(map)"
                       [class.picked]="!isDecider(map) && isMapPicked(map)">
 
-                      {{ (isMapBanned(map) ? 'BANNED' : (isMapPicked(map) ? 'PICKED' : '')) }}
+                      {{ (isMapBanned(map) ? 'BANNED' : (isMapPicked(map) ? 'PICKED' : 'DECIDER')) }}
 
                     </div>
                   </div>
