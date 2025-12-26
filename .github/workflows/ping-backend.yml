@@ -11,4 +11,4 @@ jobs:
     steps:
       - name: Ping backend
         run: |
-          curl -s -o /dev/null -w "%{http_code}" https://valpicks-backend.onrender.com/health
+          curl -s -o /dev/null -w "%{http_code}" ${{ secrets.BACKEND_URL }}
